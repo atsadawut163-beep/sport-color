@@ -1,9 +1,13 @@
+import os
 from sqlalchemy import create_engine
 from sqlalchemy.orm import declarative_base, sessionmaker
 
 from app.config import settings
 
-# Try to connect to MySQL. If it fails, fall back to SQLite for easy offline testing.
+# Determine if we must enforce the configured database (no fallback)
+enforce_db = (os.environ.get("RENDER") == "true") or (settings.DATABASE_URL is not None)
+
+# Try to connect to MySQL/Postgres. If it fails, fall back to SQLite for easy offline testing in dev.
 try:
     connect_args = {}
     if settings.db_url.startswith("mysql"):
@@ -17,9 +21,12 @@ try:
     # Test connection
     with engine.connect() as conn:
         pass
-    print("Database: Connected to MySQL database successfully.")
+    print("Database: Connected to database successfully.")
 except Exception as e:
-    print(f"Database Warning: Could not connect to MySQL: {e}")
+    if enforce_db:
+        print(f"Database Critical Error: Could not connect to configured database: {e}")
+        raise e
+    print(f"Database Warning: Could not connect to database: {e}")
     print("Database Fallback: Initializing local SQLite database 'sport_color_db.db' for demo...")
     # SQLite URL
     sqlite_url = "sqlite:///./sport_color_db.db"
