@@ -297,6 +297,17 @@ def modify_member(
         raise HTTPException(status_code=404, detail="Member not found")
     return updated
 
+@app.delete("/api/admin/members")
+def remove_all_members(
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_user)
+):
+    """Delete all members and their synced budget transactions."""
+    members = db.query(models.Member).all()
+    for m in members:
+        crud.delete_member(db=db, member_id=m.id)
+    return {"status": "success", "message": "All members deleted successfully"}
+
 @app.delete("/api/admin/members/{member_id}")
 def remove_member(
     member_id: int,
