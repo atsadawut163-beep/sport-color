@@ -324,3 +324,100 @@ def get_roster_dashboard(db: Session = Depends(get_db)):
 def list_sports_events(db: Session = Depends(get_db)):
     """Fetch the list of all sports events."""
     return crud.get_sports_events(db=db)
+
+
+# --- Additional Admin & Public Endpoints ---
+
+@app.get("/api/admin/transactions", response_model=List[schemas.TransactionResponse])
+def get_transactions(
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_user)
+):
+    """Retrieve list of all transactions."""
+    return db.query(models.Transaction).order_by(models.Transaction.date.desc(), models.Transaction.id.desc()).limit(200).all()
+
+@app.put("/api/admin/transactions/{transaction_id}", response_model=schemas.TransactionResponse)
+def update_existing_transaction(
+    transaction_id: int,
+    transaction_update: schemas.TransactionCreate,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_user)
+):
+    """Update an existing transaction."""
+    tx = crud.update_transaction(db=db, transaction_id=transaction_id, transaction_update=transaction_update)
+    if not tx:
+        raise HTTPException(status_code=404, detail="Transaction not found")
+    return tx
+
+@app.delete("/api/admin/transactions/{transaction_id}")
+def delete_existing_transaction(
+    transaction_id: int,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_user)
+):
+    """Delete a transaction."""
+    success = crud.delete_transaction(db=db, transaction_id=transaction_id)
+    if not success:
+        raise HTTPException(status_code=404, detail="Transaction not found")
+    return {"status": "success", "message": "Transaction deleted successfully"}
+
+@app.get("/api/admin/participants", response_model=List[schemas.ParticipantResponse])
+def list_participants(
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_user)
+):
+    """Retrieve all participants (raw list for admin CRUD)."""
+    participants = crud.get_participants(db=db)
+    response = []
+    for p in participants:
+        sport_name = p.sport_event.name if p.sport_event else None
+        response.append(schemas.ParticipantResponse(
+            id=p.id,
+            name=p.name,
+            type=p.type,
+            color_team=p.color_team,
+            sport_event_id=p.sport_event_id,
+            sport_event_name=sport_name,
+            created_at=p.created_at
+        ))
+    return response
+
+@app.put("/api/admin/participants/{participant_id}", response_model=schemas.ParticipantResponse)
+def modify_participant(
+    participant_id: int,
+    participant_update: schemas.ParticipantCreate,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_user)
+):
+    """Update a participant's registration."""
+    db_p = crud.update_participant(db=db, participant_id=participant_id, participant_update=participant_update)
+    if not db_p:
+        raise HTTPException(status_code=404, detail="Participant not found")
+    sport_name = db_p.sport_event.name if db_p.sport_event else None
+    return schemas.ParticipantResponse(
+        id=db_p.id,
+        name=db_p.name,
+        type=db_p.type,
+        color_team=db_p.color_team,
+        sport_event_id=db_p.sport_event_id,
+        sport_event_name=sport_name,
+        created_at=db_p.created_at
+    )
+
+@app.delete("/api/admin/participants/{participant_id}")
+def remove_participant(
+    participant_id: int,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_user)
+):
+    """Delete a participant."""
+    success = crud.delete_participant(db=db, participant_id=participant_id)
+    if not success:
+        raise HTTPException(status_code=404, detail="Participant not found")
+    return {"status": "success", "message": "Participant deleted successfully"}
+
+@app.get("/api/public/sports-roster", response_model=List[schemas.SportWithParticipantsResponse])
+def get_sports_roster(db: Session = Depends(get_db)):
+    """Fetch all sports events and their registered participant roster details."""
+    return crud.get_sports_with_participants(db=db)
+

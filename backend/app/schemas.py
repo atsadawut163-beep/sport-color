@@ -165,3 +165,23 @@ class MemberResponse(BaseModel):
     created_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
+
+
+# --- Sports Roster Schemas ---
+class SportParticipantItem(BaseModel):
+    id: int
+    name: str
+    type: str
+    color_team: str
+
+    model_config = ConfigDict(from_attributes=True)
+
+class SportWithParticipantsResponse(BaseModel):
+    id: int
+    name: str
+    category: str
+    status: str
+    participants: List[SportParticipantItem]
+
+    model_config = ConfigDict(from_attributes=True)
+

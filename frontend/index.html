@@ -227,6 +227,61 @@
             </div>
         </section>
 
+        <!-- Section 4: Sports Grouped Roster Renders -->
+        <section class="mt-8 backdrop-blur-md bg-slate-900/40 border border-slate-850 rounded-3xl p-6 sm:p-8 shadow-xl flex flex-col">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+                <div>
+                    <h2 class="text-xl font-bold font-prompt text-slate-200">รายชื่อนักกีฬาแยกตามประเภทกีฬา</h2>
+                    <p class="text-xs text-slate-400 font-prompt mt-1">ค้นหาประเภทกีฬาและดูรายชื่อตัวจริงที่ลงแข่งกีฬาสีสัมพันธ์</p>
+                </div>
+                <!-- Search and Filter Controls -->
+                <div class="flex flex-col sm:flex-row gap-3">
+                    <div class="relative">
+                        <input type="text" id="sport-roster-search" oninput="filterSportRoster()"
+                            class="w-full sm:w-64 bg-slate-950/60 border border-slate-850 rounded-xl px-4 py-2.5 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition-all font-prompt"
+                            placeholder="🔍 ค้นหากีฬา...">
+                    </div>
+                    <select id="sport-roster-category" onchange="filterSportRoster()"
+                        class="bg-slate-950/60 border border-slate-850 rounded-xl px-4 py-2.5 text-sm text-slate-300 focus:outline-none focus:border-indigo-500 font-prompt">
+                        <option value="all">หมวดหมู่ทั้งหมด</option>
+                        <option value="General">กองเชียร์ / ทั่วไป</option>
+                        <!-- Other sport categories will be added dynamically -->
+                    </select>
+                </div>
+            </div>
+
+            <!-- Sports Roster Cards Grid -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6" id="sports-cards-container">
+                <!-- Dynamic cards populated here -->
+                <div class="col-span-full text-center py-12 text-slate-500 font-prompt text-sm">กำลังโหลดข้อมูลกีฬา...</div>
+            </div>
+        </section>
+
+        <!-- Glassmorphic Modal Overlay for Sport Athlete Details -->
+        <div id="roster-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm hidden opacity-0 transition-opacity duration-300">
+            <div class="relative w-full max-w-lg bg-slate-900/90 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl shadow-indigo-500/5 transition-transform duration-300 scale-95 flex flex-col max-h-[85vh]">
+                <!-- Close Button -->
+                <button onclick="closeRosterModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-200 hover:bg-slate-850 p-2 rounded-full transition-all">
+                    ✕
+                </button>
+                <!-- Modal Header -->
+                <div class="mb-4 pr-6">
+                    <h3 id="modal-sport-title" class="text-lg font-bold font-prompt text-slate-200">ชื่อประเภทกีฬา</h3>
+                    <span id="modal-sport-category" class="inline-block mt-1 px-2.5 py-0.5 text-[10px] font-bold rounded-lg border bg-slate-950 text-indigo-400 border-indigo-500/20 font-prompt">ประเภท</span>
+                </div>
+                <!-- Modal Body (List of athletes) -->
+                <div class="flex-1 overflow-y-auto custom-scrollbar pr-1" id="modal-participants-list">
+                    <!-- Dynamic participants -->
+                </div>
+                <!-- Modal Footer -->
+                <div class="mt-6 border-t border-slate-800 pt-4 flex justify-end">
+                    <button onclick="closeRosterModal()" class="px-5 py-2 bg-slate-800 hover:bg-slate-750 text-slate-300 font-semibold rounded-xl transition-all font-prompt text-sm">
+                        ปิดหน้าต่าง
+                    </button>
+                </div>
+            </div>
+        </div>
+
     </main>
 
     <!-- Footer -->
@@ -780,9 +835,188 @@
             renderRoster(query);
         }
 
+        // --- Sports Grouped Roster Renders & Filters JS ---
+        let sportsRosterData = [];
+
+        async function loadSportsRoster() {
+            const container = document.getElementById('sports-cards-container');
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/public/sports-roster`);
+                if (!response.ok) throw new Error();
+                sportsRosterData = await response.json();
+            } catch (err) {
+                console.warn("Backend offline, using fallback sports roster mock data");
+                // Mock fallback
+                sportsRosterData = [
+                    {
+                        id: 1,
+                        name: 'ฟุตบอล (ชาย)',
+                        category: 'Outdoor',
+                        status: 'ongoing',
+                        participants: [
+                            { id: 1, name: 'นายกิตติทัต เสมอชีพ', type: 'student', color_team: 'Red' },
+                            { id: 6, name: 'อาจารย์อรรถพล ประสิทธิ์', type: 'staff', color_team: 'Red' }
+                        ]
+                    },
+                    {
+                        id: 2,
+                        name: 'บาสเกตบอล (หญิง)',
+                        category: 'Indoor',
+                        status: 'ongoing',
+                        participants: [
+                            { id: 2, name: 'นางสาวชลดา วันดี', type: 'student', color_team: 'Yellow' }
+                        ]
+                    },
+                    {
+                        id: 3,
+                        name: 'วิ่งผลัด 4x100ม. (ผสม)',
+                        category: 'Track',
+                        status: 'completed',
+                        participants: [
+                            { id: 3, name: 'นายณภัทร สมบูรณ์', type: 'student', color_team: 'Green' }
+                        ]
+                    }
+                ];
+            }
+            
+            // Populate category select dropdown dynamically
+            const categorySelect = document.getElementById('sport-roster-category');
+            const categories = new Set(sportsRosterData.map(s => s.category).filter(Boolean));
+            
+            // Reset categories keeping all and General
+            categorySelect.innerHTML = `
+                <option value="all">หมวดหมู่ทั้งหมด</option>
+                <option value="General">กองเชียร์ / ทั่วไป</option>
+            `;
+            categories.forEach(cat => {
+                if (cat !== 'General') {
+                    categorySelect.innerHTML += `<option value="${cat}">${cat}</option>`;
+                }
+            });
+
+            renderSportsRoster();
+        }
+
+        function renderSportsRoster() {
+            const container = document.getElementById('sports-cards-container');
+            const searchVal = document.getElementById('sport-roster-search').value.toLowerCase().trim();
+            const categoryVal = document.getElementById('sport-roster-category').value;
+
+            // Filter
+            let filtered = sportsRosterData;
+            if (categoryVal !== 'all') {
+                filtered = filtered.filter(s => s.category === categoryVal);
+            }
+            if (searchVal) {
+                filtered = filtered.filter(s => s.name.toLowerCase().includes(searchVal) || s.category.toLowerCase().includes(searchVal));
+            }
+
+            container.innerHTML = '';
+            if (filtered.length === 0) {
+                container.innerHTML = `<div class="col-span-full text-center py-12 text-slate-500 font-prompt text-sm">ไม่พบประเภทกีฬาตามที่คุณค้นหา</div>`;
+                return;
+            }
+
+            filtered.forEach(sport => {
+                const count = sport.participants.length;
+                
+                // Color theme badge for status
+                let statusBadge = 'bg-slate-950 text-slate-500 border-slate-900';
+                let statusTh = 'เตรียมการ';
+                if (sport.status === 'ongoing') { statusBadge = 'bg-amber-500/10 text-amber-400 border-amber-500/20'; statusTh = 'กำลังแข่ง'; }
+                else if (sport.status === 'completed') { statusBadge = 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'; statusTh = 'เสร็จสิ้น'; }
+
+                container.innerHTML += `
+                    <div onclick="openRosterModal(${sport.id})" class="relative overflow-hidden backdrop-blur-md bg-slate-950/40 border border-slate-850 hover:border-indigo-500/40 rounded-2xl p-5 shadow-lg group cursor-pointer transition-all duration-300 hover:scale-[1.02]">
+                        <div class="flex justify-between items-start mb-3">
+                            <span class="px-2 py-0.5 text-[9px] font-bold rounded-lg border uppercase bg-slate-900 border-slate-850 text-slate-400 font-prompt">
+                                ${sport.category || 'General'}
+                            </span>
+                            ${sport.category !== 'General' ? `<span class="px-2 py-0.5 text-[9px] font-bold rounded-lg border ${statusBadge} font-prompt">${statusTh}</span>` : ''}
+                        </div>
+                        <h3 class="text-sm font-bold font-prompt text-slate-200 group-hover:text-indigo-400 transition-colors line-clamp-1 mb-2">${sport.name}</h3>
+                        <div class="flex justify-between items-center mt-4 border-t border-slate-900 pt-3">
+                            <span class="text-xs text-slate-400 font-prompt">ผู้ลงชื่อเข้าร่วม</span>
+                            <span class="text-xs font-bold text-indigo-400 font-prompt bg-indigo-500/10 border border-indigo-500/20 px-2 py-0.5 rounded-full">${count} คน</span>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function filterSportRoster() {
+            renderSportsRoster();
+        }
+
+        function openRosterModal(sportId) {
+            const sport = sportsRosterData.find(s => s.id === sportId);
+            if (!sport) return;
+
+            document.getElementById('modal-sport-title').textContent = sport.name;
+            document.getElementById('modal-sport-category').textContent = `หมวดหมู่: ${sport.category || 'General'}`;
+
+            const listContainer = document.getElementById('modal-participants-list');
+            listContainer.innerHTML = '';
+
+            if (sport.participants.length === 0) {
+                listContainer.innerHTML = `<div class="text-center py-8 text-slate-500 font-prompt text-xs italic">ไม่มีรายชื่อนักกีฬาลงทะเบียนเข้าร่วมประเภทนี้</div>`;
+            } else {
+                sport.participants.forEach(p => {
+                    const typeLabel = p.type === 'student' ? 'นักเรียน' : 'บุคลากร';
+                    
+                    let colorPill = 'bg-slate-900 border-slate-800 text-slate-400';
+                    const team = p.color_team.toLowerCase();
+                    if (team.includes('red') || team.includes('แดง')) colorPill = 'bg-rose-500/10 border-rose-500/20 text-rose-400';
+                    else if (team.includes('blue') || team.includes('น้ำเงิน') || team.includes('ฟ้า')) colorPill = 'bg-sky-500/10 border-sky-500/20 text-sky-400';
+                    else if (team.includes('green') || team.includes('เขียว')) colorPill = 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400';
+                    else if (team.includes('yellow') || team.includes('เหลือง')) colorPill = 'bg-amber-400/10 border-amber-400/20 text-amber-400';
+
+                    listContainer.innerHTML += `
+                        <div class="p-3 bg-slate-950/40 border border-slate-850 hover:border-slate-800 rounded-xl mb-2 flex items-center justify-between transition-all">
+                            <div class="flex flex-col">
+                                <span class="text-sm font-semibold text-slate-200 font-prompt">${p.name}</span>
+                                <span class="text-[10px] text-slate-500 font-prompt">${typeLabel}</span>
+                            </div>
+                            <span class="px-2.5 py-0.5 rounded-full border text-[10px] font-bold font-prompt uppercase ${colorPill}">
+                                สี${p.color_team}
+                            </span>
+                        </div>
+                    `;
+                });
+            }
+
+            const modal = document.getElementById('roster-modal');
+            modal.classList.remove('hidden');
+            // Trigger animation
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                modal.firstElementChild.classList.remove('scale-95');
+                modal.firstElementChild.classList.add('scale-100');
+            }, 10);
+        }
+
+        function closeRosterModal() {
+            const modal = document.getElementById('roster-modal');
+            modal.classList.add('opacity-0');
+            modal.firstElementChild.classList.remove('scale-100');
+            modal.firstElementChild.classList.add('scale-95');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 300);
+        }
+
+        // Close modal on outside click
+        window.addEventListener('click', (e) => {
+            const modal = document.getElementById('roster-modal');
+            if (e.target === modal) {
+                closeRosterModal();
+            }
+        });
+
         // Auto-run on startup
         window.addEventListener('DOMContentLoaded', () => {
             loadDashboard();
+            loadSportsRoster();
             // Optional: poll for connection updates every 10 seconds
             setInterval(checkConnection, 10000);
         });

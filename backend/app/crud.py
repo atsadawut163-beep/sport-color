@@ -395,3 +395,72 @@ def delete_member(db: Session, member_id: int):
     db.delete(db_member)
     db.commit()
     return True
+
+
+# --- Additional CRUD Extensions ---
+
+def update_transaction(db: Session, transaction_id: int, transaction_update: schemas.TransactionCreate):
+    db_tx = db.query(models.Transaction).filter(models.Transaction.id == transaction_id).first()
+    if not db_tx:
+        return None
+    db_tx.type = transaction_update.type
+    db_tx.category = transaction_update.category
+    db_tx.amount = transaction_update.amount
+    db_tx.description = transaction_update.description
+    db_tx.date = transaction_update.date
+    db.commit()
+    db.refresh(db_tx)
+    return db_tx
+
+def delete_transaction(db: Session, transaction_id: int) -> bool:
+    db_tx = db.query(models.Transaction).filter(models.Transaction.id == transaction_id).first()
+    if not db_tx:
+        return False
+    db.delete(db_tx)
+    db.commit()
+    return True
+
+def get_participants(db: Session):
+    return db.query(models.Participant).order_by(models.Participant.created_at.desc()).all()
+
+def update_participant(db: Session, participant_id: int, participant_update: schemas.ParticipantCreate):
+    db_p = db.query(models.Participant).filter(models.Participant.id == participant_id).first()
+    if not db_p:
+        return None
+    db_p.name = participant_update.name
+    db_p.type = participant_update.type
+    db_p.color_team = participant_update.color_team
+    db_p.sport_event_id = participant_update.sport_event_id
+    db.commit()
+    db.refresh(db_p)
+    return db_p
+
+def delete_participant(db: Session, participant_id: int) -> bool:
+    db_p = db.query(models.Participant).filter(models.Participant.id == participant_id).first()
+    if not db_p:
+        return False
+    db.delete(db_p)
+    db.commit()
+    return True
+
+def get_sports_with_participants(db: Session):
+    events = db.query(models.SportsEvent).order_by(models.SportsEvent.name.asc()).all()
+    result = []
+    for event in events:
+        result.append({
+            "id": event.id,
+            "name": event.name,
+            "category": event.category,
+            "status": event.status,
+            "participants": [
+                {
+                    "id": p.id,
+                    "name": p.name,
+                    "type": p.type,
+                    "color_team": p.color_team
+                }
+                for p in event.participants
+            ]
+        })
+    return result
+

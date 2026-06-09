@@ -101,11 +101,12 @@
                 <!-- 1. Form: Transactions -->
                 <div id="form-tx" class="space-y-6">
                     <div>
-                        <h2 class="text-xl font-bold font-prompt text-slate-200 mb-1">บันทึกรายรับรายจ่าย</h2>
-                        <p class="text-xs text-slate-400 font-prompt">เพิ่มบันทึกธุรกรรมทางการเงินของสี</p>
+                        <h2 id="tx-form-title" class="text-xl font-bold font-prompt text-slate-200 mb-1">บันทึกรายรับรายจ่าย</h2>
+                        <p id="tx-form-subtitle" class="text-xs text-slate-400 font-prompt">เพิ่มบันทึกธุรกรรมทางการเงินของสี</p>
                     </div>
 
                     <form onsubmit="handleTransactionSubmit(event)" class="space-y-4 font-prompt">
+                        <input type="hidden" id="tx-id">
                         <div class="grid grid-cols-2 gap-4">
                             <div>
                                 <label class="block text-slate-300 text-sm mb-2">ประเภทธุรกรรม</label>
@@ -159,21 +160,49 @@
                                 placeholder="ป้อนรายละเอียดหรือวัตถุประสงค์ในการใช้จ่าย"></textarea>
                         </div>
 
-                        <button type="submit"
-                            class="w-full py-3.5 bg-gradient-to-r from-indigo-500 to-violet-600 hover:from-indigo-600 hover:to-violet-700 text-white font-semibold rounded-xl shadow-lg shadow-indigo-500/20 active:scale-[0.98] transition-all">
-                            บันทึกธุรกรรม
-                        </button>
+                        <div class="flex gap-4">
+                            <button type="button" id="tx-cancel-btn" onclick="resetTransactionForm()"
+                                class="hidden px-6 py-3.5 bg-slate-800 hover:bg-slate-750 text-slate-300 font-semibold rounded-xl transition-all">
+                                ยกเลิก
+                            </button>
+                            <button type="submit" id="tx-submit-btn"
+                                class="flex-1 py-3.5 bg-gradient-to-r from-indigo-500 to-violet-600 hover:from-indigo-600 hover:to-violet-700 text-white font-semibold rounded-xl shadow-lg shadow-indigo-500/20 active:scale-[0.98] transition-all">
+                                บันทึกธุรกรรม
+                            </button>
+                        </div>
                     </form>
-                </div>
 
+                    <!-- Transactions Table -->
+                    <div class="border-t border-slate-850 pt-6">
+                        <h3 class="text-md font-bold font-prompt text-slate-200 mb-4">ประวัติการทำรายการทั้งหมด</h3>
+                        <div class="overflow-x-auto border border-slate-850 rounded-2xl bg-slate-950/20">
+                            <table class="w-full text-sm text-left text-slate-300 font-prompt">
+                                <thead class="bg-slate-950/40 text-xs text-slate-400 uppercase">
+                                    <tr>
+                                        <th class="px-4 py-3">วันที่</th>
+                                        <th class="px-4 py-3">ประเภท</th>
+                                        <th class="px-4 py-3">หมวดหมู่</th>
+                                        <th class="px-4 py-3">รายละเอียด</th>
+                                        <th class="px-4 py-3 text-right">จำนวนเงิน</th>
+                                        <th class="px-4 py-3 text-right">การจัดการ</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tx-table-body">
+                                    <!-- Dynamic rows loaded here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
                 <!-- 2. Form: Participants -->
                 <div id="form-participant" class="hidden space-y-6">
                     <div>
-                        <h2 class="text-xl font-bold font-prompt text-slate-200 mb-1">เพิ่มรายชื่อนักกีฬาและบุคลากร</h2>
-                        <p class="text-xs text-slate-400 font-prompt">ลงทะเบียนบุคคลและมอบหมายกีฬาที่ลงแข่งขัน</p>
+                        <h2 id="part-form-title" class="text-xl font-bold font-prompt text-slate-200 mb-1">เพิ่มรายชื่อนักกีฬาและบุคลากร</h2>
+                        <p id="part-form-subtitle" class="text-xs text-slate-400 font-prompt">ลงทะเบียนบุคคลและมอบหมายกีฬาที่ลงแข่งขัน</p>
                     </div>
 
                     <form onsubmit="handleParticipantSubmit(event)" class="space-y-4 font-prompt">
+                        <input type="hidden" id="part-id">
                         <div class="relative">
                             <label class="block text-slate-300 text-sm mb-2">ชื่อ-นามสกุล</label>
                             <input type="text" id="part-name" required autocomplete="off" oninput="handleParticipantSearch(this.value)" onfocus="handleParticipantSearch(this.value)"
@@ -215,17 +244,55 @@
                             </select>
                         </div>
 
-                        <button type="submit"
-                            class="w-full py-3.5 bg-gradient-to-r from-indigo-500 to-violet-600 hover:from-indigo-600 hover:to-violet-700 text-white font-semibold rounded-xl shadow-lg shadow-indigo-500/20 active:scale-[0.98] transition-all">
-                            ลงทะเบียนข้อมูล
-                        </button>
+                        <div class="flex gap-4">
+                            <button type="button" id="part-cancel-btn" onclick="resetParticipantForm()"
+                                class="hidden px-6 py-3.5 bg-slate-800 hover:bg-slate-750 text-slate-300 font-semibold rounded-xl transition-all">
+                                ยกเลิก
+                            </button>
+                            <button type="submit" id="part-submit-btn"
+                                class="flex-1 py-3.5 bg-gradient-to-r from-indigo-500 to-violet-600 hover:from-indigo-600 hover:to-violet-700 text-white font-semibold rounded-xl shadow-lg shadow-indigo-500/20 active:scale-[0.98] transition-all">
+                                ลงทะเบียนข้อมูล
+                            </button>
+                        </div>
                     </form>
+
+                    <!-- Participant Lists -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 border-t border-slate-850 pt-6">
+                        <!-- Left column: All Registered Participants Table -->
+                        <div class="space-y-4">
+                            <h3 class="text-md font-bold font-prompt text-slate-200">ทำเนียบรายชื่อบุคคลทั้งหมด</h3>
+                            <div class="overflow-x-auto border border-slate-850 rounded-2xl bg-slate-950/20 max-h-[400px] custom-scrollbar">
+                                <table class="w-full text-sm text-left text-slate-300 font-prompt">
+                                    <thead class="bg-slate-950/40 text-xs text-slate-400 uppercase sticky top-0 backdrop-blur-md">
+                                        <tr>
+                                            <th class="px-4 py-3">ชื่อ</th>
+                                            <th class="px-4 py-3">ประเภท</th>
+                                            <th class="px-4 py-3">สี</th>
+                                            <th class="px-4 py-3">กีฬา</th>
+                                            <th class="px-4 py-3 text-right">การจัดการ</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="parts-table-body">
+                                        <!-- Dynamic rows -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Right column: Participants Grouped by Sport -->
+                        <div class="space-y-4">
+                            <h3 class="text-md font-bold font-prompt text-slate-200">รายชื่อผู้ลงทะเบียนแยกตามประเภทกีฬา</h3>
+                            <div class="space-y-3 max-h-[400px] overflow-y-auto custom-scrollbar pr-1" id="grouped-roster-container">
+                                <!-- Dynamic group lists -->
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- 3. Form: Results -->
                 <div id="form-result" class="hidden space-y-6">
                     <div>
-                        <h2 class="text-xl font-bold font-prompt text-slate-200 mb-1">อัปเดตผลการแข่งขันกีฬาสี</h2>
+                        <h2 id="res-form-title" class="text-xl font-bold font-prompt text-slate-200 mb-1">อัปเดตผลการแข่งขันกีฬาสี</h2>
                         <p class="text-xs text-slate-400 font-prompt">ระบุเหรียญทอง เงิน ทองแดง และคะแนนการแข่ง</p>
                     </div>
 
@@ -287,10 +354,16 @@
                                 placeholder="คำอธิบายผลแมตช์ เช่น จบด้วยการเตะลูกโทษ, ทำลายสถิติปีที่แล้ว"></textarea>
                         </div>
 
-                        <button type="submit"
-                            class="w-full py-3.5 bg-gradient-to-r from-indigo-500 to-violet-600 hover:from-indigo-600 hover:to-violet-700 text-white font-semibold rounded-xl shadow-lg shadow-indigo-500/20 active:scale-[0.98] transition-all">
-                            อัปเดตผลงานกีฬา
-                        </button>
+                        <div class="flex gap-4">
+                            <button type="button" id="res-cancel-btn" onclick="resetResultForm()"
+                                class="hidden px-6 py-3.5 bg-slate-800 hover:bg-slate-750 text-slate-300 font-semibold rounded-xl transition-all">
+                                ยกเลิก
+                            </button>
+                            <button type="submit" id="res-submit-btn"
+                                class="flex-1 py-3.5 bg-gradient-to-r from-indigo-500 to-violet-600 hover:from-indigo-600 hover:to-violet-700 text-white font-semibold rounded-xl shadow-lg shadow-indigo-500/20 active:scale-[0.98] transition-all">
+                                อัปเดตผลงานกีฬา
+                            </button>
+                        </div>
                     </form>
 
                     <!-- Results Table -->
@@ -608,6 +681,10 @@
                 loadSportsEvents();
             } else if (target === 'result') {
                 loadResults();
+            } else if (target === 'tx') {
+                loadTransactions();
+            } else if (target === 'participant') {
+                loadParticipants();
             }
 
             closeAlert();
@@ -716,6 +793,7 @@
             e.preventDefault();
             closeAlert();
             
+            const id = document.getElementById('tx-id').value;
             const type = document.getElementById('tx-type').value;
             let category = document.getElementById('tx-category').value;
             if (category === 'other') {
@@ -730,19 +808,42 @@
                 return;
             }
 
+            const isEdit = id !== '';
+            const adminToken = localStorage.getItem('admin_token');
+
             try {
-                await securePost('/api/admin/transactions', {
-                    type,
-                    category,
-                    amount,
-                    date,
-                    description: description || null
-                });
-                
-                showAlert('บันทึกรายละเอียดธุรกรรมทางการเงินสำเร็จเรียบร้อยแล้ว!');
-                e.target.reset();
-                document.getElementById('tx-date').valueAsDate = new Date();
-                checkCategoryOther();
+                if (isEdit) {
+                    const response = await fetch(`${API_BASE_URL}/api/admin/transactions/${id}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${adminToken}`
+                        },
+                        body: JSON.stringify({
+                            type,
+                            category,
+                            amount,
+                            date,
+                            description: description || null
+                        })
+                    });
+                    if (!response.ok) throw new Error('แก้ไขธุรกรรมทางการเงินล้มเหลว');
+                    showAlert('แก้ไขรายละเอียดธุรกรรมทางการเงินสำเร็จเรียบร้อยแล้ว!');
+                    resetTransactionForm();
+                } else {
+                    await securePost('/api/admin/transactions', {
+                        type,
+                        category,
+                        amount,
+                        date,
+                        description: description || null
+                    });
+                    showAlert('บันทึกรายละเอียดธุรกรรมทางการเงินสำเร็จเรียบร้อยแล้ว!');
+                    e.target.reset();
+                    document.getElementById('tx-date').valueAsDate = new Date();
+                    checkCategoryOther();
+                }
+                loadTransactions();
             } catch (err) {
                 showAlert(err.message || 'บันทึกล้มเหลว ไม่สามารถติดต่อเซิร์ฟเวอร์ได้', 'error');
             }
@@ -752,22 +853,45 @@
             e.preventDefault();
             closeAlert();
 
+            const id = document.getElementById('part-id').value;
             const name = document.getElementById('part-name').value.trim();
             const type = document.getElementById('part-type').value;
             const color_team = document.getElementById('part-color').value;
             const sportVal = document.getElementById('part-sport').value;
             const sport_event_id = sportVal ? parseInt(sportVal) : null;
+            
+            const isEdit = id !== '';
+            const adminToken = localStorage.getItem('admin_token');
 
             try {
-                await securePost('/api/admin/participants', {
-                    name,
-                    type,
-                    color_team,
-                    sport_event_id
-                });
-                
-                showAlert(`บันทึกข้อมูลของ ${name} เข้าสู่ทำเนียบเรียบร้อยแล้ว!`);
-                e.target.reset();
+                if (isEdit) {
+                    const response = await fetch(`${API_BASE_URL}/api/admin/participants/${id}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${adminToken}`
+                        },
+                        body: JSON.stringify({
+                            name,
+                            type,
+                            color_team,
+                            sport_event_id
+                        })
+                    });
+                    if (!response.ok) throw new Error('แก้ไขข้อมูลล้มเหลว');
+                    showAlert(`แก้ไขข้อมูลคุณ ${name} สำเร็จเรียบร้อย!`);
+                    resetParticipantForm();
+                } else {
+                    await securePost('/api/admin/participants', {
+                        name,
+                        type,
+                        color_team,
+                        sport_event_id
+                    });
+                    showAlert(`บันทึกข้อมูลของ ${name} เข้าสู่ทำเนียบเรียบร้อยแล้ว!`);
+                    e.target.reset();
+                }
+                loadParticipants();
             } catch (err) {
                 showAlert(err.message || 'บันทึกล้มเหลว ไม่สามารถติดต่อเซิร์ฟเวอร์ได้', 'error');
             }
@@ -969,7 +1093,8 @@
                             <td class="px-4 py-3 font-semibold text-slate-200">${res.sport_event_name}</td>
                             <td class="px-4 py-3 text-slate-300">${res.winner}</td>
                             <td class="px-4 py-3 text-slate-300 font-bold">${res.score || '-'}</td>
-                            <td class="px-4 py-3 text-right">
+                            <td class="px-4 py-3 text-right whitespace-nowrap">
+                                <button onclick="editResult(${res.id})" class="px-2.5 py-1 text-xs bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 border border-indigo-500/20 rounded-lg transition-all mr-2">แก้ไข</button>
                                 <button onclick="deleteResult(${res.id}, '${res.sport_event_name}')" class="px-2.5 py-1 text-xs bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 rounded-lg transition-all">ลบ</button>
                             </td>
                         </tr>
@@ -997,6 +1122,309 @@
                 showAlert(err.message, 'error');
             }
         }
+
+        function editResult(id) {
+            const res = resultsList.find(r => r.id === id);
+            if (!res) return;
+            
+            document.getElementById('res-sport').value = res.sport_event_id;
+            document.getElementById('res-sport').disabled = true;
+            
+            const sport = sportsEventsList.find(s => s.id === res.sport_event_id);
+            if (sport) {
+                document.getElementById('res-sport-status').value = sport.status;
+            }
+            
+            document.getElementById('res-winner').value = res.winner;
+            document.getElementById('res-runnerup').value = res.runner_up || '';
+            document.getElementById('res-third').value = res.second_runner_up || '';
+            document.getElementById('res-score').value = res.score || '';
+            document.getElementById('res-details').value = res.details || '';
+            
+            document.getElementById('res-form-title').textContent = 'แก้ไขผลการแข่งขันกีฬาสี';
+            document.getElementById('res-submit-btn').textContent = 'บันทึกการแก้ไขผล';
+            document.getElementById('res-cancel-btn').classList.remove('hidden');
+            closeAlert();
+        }
+
+        function resetResultForm() {
+            document.getElementById('res-sport').disabled = false;
+            document.getElementById('res-sport').value = '';
+            document.querySelector('#form-result form').reset();
+            
+            document.getElementById('res-form-title').textContent = 'อัปเดตผลการแข่งขันกีฬาสี';
+            document.getElementById('res-submit-btn').textContent = 'อัปเดตผลงานกีฬา';
+            document.getElementById('res-cancel-btn').classList.add('hidden');
+            closeAlert();
+        }
+
+        // --- Financial Transactions CRUD Logic ---
+        let transactionsList = [];
+
+        async function loadTransactions() {
+            const tableBody = document.getElementById('tx-table-body');
+            if (!tableBody) return;
+            tableBody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-slate-500">กำลังโหลด...</td></tr>';
+            try {
+                const adminToken = localStorage.getItem('admin_token');
+                const response = await fetch(`${API_BASE_URL}/api/admin/transactions`, {
+                    headers: { 'Authorization': `Bearer ${adminToken}` }
+                });
+                if (!response.ok) throw new Error();
+                transactionsList = await response.json();
+                tableBody.innerHTML = '';
+                if (transactionsList.length === 0) {
+                    tableBody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-slate-500">ไม่มีข้อมูลธุรกรรมทางการเงิน</td></tr>';
+                    return;
+                }
+                transactionsList.forEach(tx => {
+                    const typeText = tx.type === 'income' ? '<span class="text-emerald-400 font-semibold">รายรับ</span>' : '<span class="text-rose-400 font-semibold">รายจ่าย</span>';
+                    const amountClass = tx.type === 'income' ? 'text-emerald-400 font-bold' : 'text-rose-400 font-bold';
+                    const amountPrefix = tx.type === 'income' ? '+' : '-';
+                    tableBody.innerHTML += `
+                        <tr class="border-b border-slate-900 hover:bg-slate-950/20">
+                            <td class="px-4 py-3 text-slate-400 text-xs">${tx.date}</td>
+                            <td class="px-4 py-3 text-xs">${typeText}</td>
+                            <td class="px-4 py-3 text-slate-200 font-semibold text-xs">${tx.category}</td>
+                            <td class="px-4 py-3 text-slate-300 text-xs max-w-[200px] truncate" title="${tx.description || ''}">${tx.description || '-'}</td>
+                            <td class="px-4 py-3 text-right text-xs ${amountClass}">${amountPrefix}฿${parseFloat(tx.amount).toLocaleString('th-TH', {minimumFractionDigits: 2})}</td>
+                            <td class="px-4 py-3 text-right whitespace-nowrap">
+                                <button onclick="editTransaction(${tx.id})" class="px-2 py-0.5 text-[10px] bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 border border-indigo-500/20 rounded-lg transition-all mr-1.5">แก้ไข</button>
+                                <button onclick="deleteTransaction(${tx.id})" class="px-2 py-0.5 text-[10px] bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 rounded-lg transition-all">ลบ</button>
+                            </td>
+                        </tr>
+                    `;
+                });
+            } catch (err) {
+                tableBody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-rose-400">เกิดข้อผิดพลาดในการโหลด</td></tr>';
+            }
+        }
+
+        function editTransaction(id) {
+            const tx = transactionsList.find(t => t.id === id);
+            if (!tx) return;
+            document.getElementById('tx-id').value = tx.id;
+            document.getElementById('tx-type').value = tx.type;
+            
+            const categorySelect = document.getElementById('tx-category');
+            const hasOption = Array.from(categorySelect.options).some(opt => opt.value === tx.category);
+            if (hasOption) {
+                categorySelect.value = tx.category;
+            } else {
+                categorySelect.value = 'other';
+                document.getElementById('tx-category-custom-div').classList.remove('hidden');
+                document.getElementById('tx-category-custom').value = tx.category;
+            }
+            
+            document.getElementById('tx-amount').value = tx.amount;
+            document.getElementById('tx-date').value = tx.date;
+            document.getElementById('tx-desc').value = tx.description || '';
+            
+            document.getElementById('tx-form-title').textContent = 'แก้ไขบันทึกรายรับรายจ่าย';
+            document.getElementById('tx-form-subtitle').textContent = 'แก้ไขรายละเอียดธุรกรรมทางการเงินของสี';
+            document.getElementById('tx-submit-btn').textContent = 'บันทึกการแก้ไข';
+            document.getElementById('tx-cancel-btn').classList.remove('hidden');
+            closeAlert();
+        }
+
+        function resetTransactionForm() {
+            document.getElementById('tx-id').value = '';
+            document.querySelector('#form-tx form').reset();
+            document.getElementById('tx-date').valueAsDate = new Date();
+            document.getElementById('tx-category-custom-div').classList.add('hidden');
+            
+            document.getElementById('tx-form-title').textContent = 'บันทึกรายรับรายจ่าย';
+            document.getElementById('tx-form-subtitle').textContent = 'เพิ่มบันทึกธุรกรรมทางการเงินของสี';
+            document.getElementById('tx-submit-btn').textContent = 'บันทึกธุรกรรม';
+            document.getElementById('tx-cancel-btn').classList.add('hidden');
+            closeAlert();
+        }
+
+        async function deleteTransaction(id) {
+            closeAlert();
+            if (!confirm('คุณแน่ใจหรือไม่ที่จะลบรายการธุรกรรมนี้?')) return;
+            try {
+                const adminToken = localStorage.getItem('admin_token');
+                const response = await fetch(`${API_BASE_URL}/api/admin/transactions/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${adminToken}` }
+                });
+                if (!response.ok) throw new Error('ลบรายการล้มเหลว');
+                showAlert('ลบรายการธุรกรรมการเงินเรียบร้อยแล้ว!');
+                loadTransactions();
+            } catch (err) {
+                showAlert(err.message, 'error');
+            }
+        }
+
+        // --- Participant CRUD & Grouped Roster Logic ---
+        let participantsList = [];
+
+        async function loadParticipants() {
+            const tableBody = document.getElementById('parts-table-body');
+            if (!tableBody) return;
+            tableBody.innerHTML = '<tr><td colspan="5" class="text-center py-4 text-slate-500">กำลังโหลด...</td></tr>';
+            try {
+                const adminToken = localStorage.getItem('admin_token');
+                const response = await fetch(`${API_BASE_URL}/api/admin/participants`, {
+                    headers: { 'Authorization': `Bearer ${adminToken}` }
+                });
+                if (!response.ok) throw new Error();
+                participantsList = await response.json();
+                tableBody.innerHTML = '';
+                if (participantsList.length === 0) {
+                    tableBody.innerHTML = '<tr><td colspan="5" class="text-center py-4 text-slate-500">ไม่มีรายชื่อบุคคลผู้เข้าร่วม</td></tr>';
+                } else {
+                    participantsList.forEach(p => {
+                        const typeThai = p.type === 'student' ? 'นักเรียน' : 'บุคลากร';
+                        const colorBadge = getColorBadge(p.color_team);
+                        const sportText = p.sport_event_name ? `${p.sport_event_name}` : '<span class="text-slate-500">ทั่วไป / กองเชียร์</span>';
+                        tableBody.innerHTML += `
+                            <tr class="border-b border-slate-900 hover:bg-slate-950/20">
+                                <td class="px-4 py-3 font-semibold text-slate-200 text-xs">${p.name}</td>
+                                <td class="px-4 py-3 text-slate-400 text-[10px]">${typeThai}</td>
+                                <td class="px-4 py-3">${colorBadge}</td>
+                                <td class="px-4 py-3 text-slate-300 text-[10px] max-w-[120px] truncate" title="${p.sport_event_name || ''}">${sportText}</td>
+                                <td class="px-4 py-3 text-right whitespace-nowrap">
+                                    <button onclick="editParticipant(${p.id})" class="px-2 py-0.5 text-[10px] bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 border border-indigo-500/20 rounded-lg transition-all mr-1">แก้ไข</button>
+                                    <button onclick="deleteParticipant(${p.id}, '${p.name}')" class="px-2 py-0.5 text-[10px] bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 rounded-lg transition-all">ลบ</button>
+                                </td>
+                            </tr>
+                        `;
+                    });
+                }
+
+                await loadGroupedRoster();
+            } catch (err) {
+                tableBody.innerHTML = '<tr><td colspan="5" class="text-center py-4 text-rose-400">เกิดข้อผิดพลาดในการโหลด</td></tr>';
+            }
+        }
+
+        function getColorBadge(color) {
+            let bg = 'bg-slate-500/10 text-slate-400 border-slate-500/20';
+            let thName = 'ทั่วไป';
+            if (color === 'Red') { bg = 'bg-rose-500/15 text-rose-400 border-rose-500/25'; thName = 'สีแดง'; }
+            else if (color === 'Blue') { bg = 'bg-blue-500/15 text-blue-400 border-blue-500/25'; thName = 'สีน้ำเงิน'; }
+            else if (color === 'Green') { bg = 'bg-emerald-500/15 text-emerald-400 border-emerald-500/25'; thName = 'สีเขียว'; }
+            else if (color === 'Yellow') { bg = 'bg-amber-500/15 text-amber-400 border-amber-500/25'; thName = 'สีเหลือง'; }
+            return `<span class="px-1.5 py-0.5 text-[9px] rounded border ${bg}">${thName}</span>`;
+        }
+
+        async function loadGroupedRoster() {
+            const container = document.getElementById('grouped-roster-container');
+            if (!container) return;
+            container.innerHTML = '<p class="text-slate-500 text-xs">กำลังโหลดรายชื่อแยกประเภทกีฬา...</p>';
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/public/sports-roster`);
+                if (!response.ok) throw new Error();
+                const sportsRoster = await response.json();
+                container.innerHTML = '';
+                
+                const generalParticipants = participantsList.filter(p => !p.sport_event_id);
+                
+                const fullRoster = [...sportsRoster];
+                fullRoster.push({
+                    id: 0,
+                    name: 'กองเชียร์ทั่วไป / บุคลากรสนับสนุน',
+                    category: 'General',
+                    participants: generalParticipants.map(gp => ({
+                        id: gp.id,
+                        name: gp.name,
+                        type: gp.type,
+                        color_team: gp.color_team
+                    }))
+                });
+
+                fullRoster.forEach(sport => {
+                    const count = sport.participants.length;
+                    let listItems = '<p class="text-[11px] text-slate-500 italic pl-4 py-1">ไม่มีผู้ลงชื่อในรายการนี้</p>';
+                    if (count > 0) {
+                        listItems = sport.participants.map(p => {
+                            const typeLabel = p.type === 'student' ? 'นักเรียน' : 'บุคลากร';
+                            let dotColor = 'bg-slate-400';
+                            if (p.color_team === 'Red') dotColor = 'bg-rose-500';
+                            else if (p.color_team === 'Blue') dotColor = 'bg-blue-500';
+                            else if (p.color_team === 'Green') dotColor = 'bg-emerald-500';
+                            else if (p.color_team === 'Yellow') dotColor = 'bg-amber-500';
+                            
+                            return `
+                                <div class="flex items-center justify-between text-[11px] py-1.5 border-b border-slate-900/40 last:border-b-0 pl-4 pr-2">
+                                    <span class="text-slate-300">${p.name}</span>
+                                    <div class="flex items-center gap-1.5">
+                                        <span class="text-slate-500 text-[9px]">${typeLabel}</span>
+                                        <span class="w-2 h-2 rounded-full ${dotColor}"></span>
+                                    </div>
+                                </div>
+                            `;
+                        }).join('');
+                    }
+
+                    container.innerHTML += `
+                        <div class="border border-slate-850 rounded-xl bg-slate-950/15 overflow-hidden">
+                            <button type="button" onclick="this.nextElementSibling.classList.toggle('hidden')" class="w-full flex justify-between items-center px-4 py-2.5 bg-slate-900/30 hover:bg-slate-900/45 transition-all text-left">
+                                <div>
+                                    <span class="text-xs font-semibold text-slate-200 font-prompt">${sport.name}</span>
+                                    ${sport.category !== 'General' ? `<span class="ml-2 px-1.5 py-0.5 text-[8px] bg-slate-800 text-slate-400 rounded-full font-prompt">${sport.category}</span>` : ''}
+                                </div>
+                                <span class="text-[10px] font-semibold bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 px-2 py-0.5 rounded-full font-prompt">
+                                    ${count} คน
+                                </span>
+                            </button>
+                            <div class="hidden p-2 bg-slate-950/30 border-t border-slate-900 max-h-40 overflow-y-auto custom-scrollbar">
+                                ${listItems}
+                            </div>
+                        </div>
+                    `;
+                });
+            } catch (err) {
+                container.innerHTML = '<p class="text-rose-400 text-xs">เกิดข้อผิดพลาดในการโหลดข้อมูลแยกประเภทกีฬา</p>';
+            }
+        }
+
+        function editParticipant(id) {
+            const p = participantsList.find(x => x.id === id);
+            if (!p) return;
+            document.getElementById('part-id').value = p.id;
+            document.getElementById('part-name').value = p.name;
+            document.getElementById('part-type').value = p.type;
+            document.getElementById('part-color').value = p.color_team;
+            document.getElementById('part-sport').value = p.sport_event_id || '';
+            
+            document.getElementById('part-form-title').textContent = 'แก้ไขข้อมูลนักกีฬา/บุคลากร';
+            document.getElementById('part-form-subtitle').textContent = 'แก้ไขรายละเอียดการลงทะเบียนของนักกีฬาหรือบุคลากร';
+            document.getElementById('part-submit-btn').textContent = 'บันทึกการแก้ไขรายชื่อ';
+            document.getElementById('part-cancel-btn').classList.remove('hidden');
+            closeAlert();
+        }
+
+        function resetParticipantForm() {
+            document.getElementById('part-id').value = '';
+            document.querySelector('#form-participant form').reset();
+            
+            document.getElementById('part-form-title').textContent = 'เพิ่มรายชื่อนักกีฬาและบุคลากร';
+            document.getElementById('part-form-subtitle').textContent = 'ลงทะเบียนบุคคลและมอบหมายกีฬาที่ลงแข่งขัน';
+            document.getElementById('part-submit-btn').textContent = 'ลงทะเบียนข้อมูล';
+            document.getElementById('part-cancel-btn').classList.add('hidden');
+            closeAlert();
+        }
+
+        async function deleteParticipant(id, name) {
+            closeAlert();
+            if (!confirm(`คุณแน่ใจหรือไม่ที่จะลบรายชื่อของ "${name}"?`)) return;
+            try {
+                const adminToken = localStorage.getItem('admin_token');
+                const response = await fetch(`${API_BASE_URL}/api/admin/participants/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${adminToken}` }
+                });
+                if (!response.ok) throw new Error('ลบรายชื่อล้มเหลว');
+                showAlert(`ลบรายชื่อของ "${name}" เรียบร้อยแล้ว!`);
+                loadParticipants();
+            } catch (err) {
+                showAlert(err.message, 'error');
+            }
+        }
+
 
 
         // --- Member CRUD & Autocomplete JS logic ---
@@ -1383,6 +1811,7 @@
         // Auto-run on startup
         window.addEventListener('DOMContentLoaded', () => {
             fetchSportsDropdowns();
+            loadTransactions();
         });
     </script>
 </body>
