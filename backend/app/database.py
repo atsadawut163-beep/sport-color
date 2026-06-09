@@ -5,9 +5,14 @@ from app.config import settings
 
 # Try to connect to MySQL. If it fails, fall back to SQLite for easy offline testing.
 try:
+    connect_args = {}
+    if settings.db_url.startswith("mysql"):
+        # TiDB Cloud requires SSL connection. Enabling SSL in PyMySQL.
+        connect_args = {"ssl": {}}
     engine = create_engine(
         settings.db_url,
-        pool_pre_ping=True
+        pool_pre_ping=True,
+        connect_args=connect_args
     )
     # Test connection
     with engine.connect() as conn:
