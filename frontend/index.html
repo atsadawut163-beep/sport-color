@@ -372,7 +372,7 @@
         // Check Backend availability
         async function checkConnection() {
             try {
-                const response = await fetch(`${API_BASE_URL}/`);
+                const response = await fetch(`${API_BASE_URL}/?t=${Date.now()}`);
                 if (response.ok) {
                     isBackendAvailable = true;
                     updateStatusBadge('online');
@@ -438,7 +438,7 @@
 
         // Fetch Live Finance
         async function fetchFinanceData() {
-            const response = await fetch(`${API_BASE_URL}/api/public/dashboard/finance`);
+            const response = await fetch(`${API_BASE_URL}/api/public/dashboard/finance?t=${Date.now()}`);
             if (!response.ok) throw new Error();
             const data = await response.json();
             renderFinance(data);
@@ -446,7 +446,7 @@
 
         // Fetch Live Results
         async function fetchResultsData() {
-            const response = await fetch(`${API_BASE_URL}/api/public/dashboard/results`);
+            const response = await fetch(`${API_BASE_URL}/api/public/dashboard/results?t=${Date.now()}`);
             if (!response.ok) throw new Error();
             const data = await response.json();
             renderResults(data);
@@ -454,7 +454,7 @@
 
         // Fetch Live Roster
         async function fetchRosterData() {
-            const response = await fetch(`${API_BASE_URL}/api/public/dashboard/roster`);
+            const response = await fetch(`${API_BASE_URL}/api/public/dashboard/roster?t=${Date.now()}`);
             if (!response.ok) throw new Error();
             const data = await response.json();
             rosterData = data;
@@ -841,7 +841,7 @@
         async function loadSportsRoster() {
             const container = document.getElementById('sports-cards-container');
             try {
-                const response = await fetch(`${API_BASE_URL}/api/public/sports-roster`);
+                const response = await fetch(`${API_BASE_URL}/api/public/sports-roster?t=${Date.now()}`);
                 if (!response.ok) throw new Error();
                 sportsRosterData = await response.json();
             } catch (err) {

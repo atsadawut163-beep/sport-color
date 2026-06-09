@@ -504,7 +504,7 @@
                                     <select id="member-type" required
                                         class="w-full bg-slate-950/60 border border-slate-850 rounded-xl px-4 py-3 text-slate-200 focus:outline-none focus:border-indigo-500">
                                         <option value="student">นักเรียน (Student)</option>
-                                        <option value="member">สมาชิกทั่วไป (Member)</option>
+                                        <option value="staff">บุคลากร (Staff)</option>
                                     </select>
                                 </div>
                             </div>
@@ -726,7 +726,7 @@
         // Fetch list of sports to populate select boxes
         async function fetchSportsDropdowns() {
             try {
-                const response = await fetch(`${API_BASE_URL}/api/public/sports`);
+                const response = await fetch(`${API_BASE_URL}/api/public/sports?t=${Date.now()}`);
                 if (!response.ok) throw new Error();
                 
                 sportsEventsList = await response.json();
@@ -1079,7 +1079,7 @@
             const tableBody = document.getElementById('results-table-body');
             tableBody.innerHTML = '<tr><td colspan="4" class="text-center py-4 text-slate-500">กำลังโหลด...</td></tr>';
             try {
-                const response = await fetch(`${API_BASE_URL}/api/public/dashboard/results`);
+                const response = await fetch(`${API_BASE_URL}/api/public/dashboard/results?t=${Date.now()}`);
                 if (!response.ok) throw new Error();
                 resultsList = await response.json();
                 tableBody.innerHTML = '';
@@ -1167,7 +1167,7 @@
             tableBody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-slate-500">กำลังโหลด...</td></tr>';
             try {
                 const adminToken = localStorage.getItem('admin_token');
-                const response = await fetch(`${API_BASE_URL}/api/admin/transactions`, {
+                const response = await fetch(`${API_BASE_URL}/api/admin/transactions?t=${Date.now()}`, {
                     headers: { 'Authorization': `Bearer ${adminToken}` }
                 });
                 if (!response.ok) throw new Error();
@@ -1266,7 +1266,7 @@
             tableBody.innerHTML = '<tr><td colspan="5" class="text-center py-4 text-slate-500">กำลังโหลด...</td></tr>';
             try {
                 const adminToken = localStorage.getItem('admin_token');
-                const response = await fetch(`${API_BASE_URL}/api/admin/participants`, {
+                const response = await fetch(`${API_BASE_URL}/api/admin/participants?t=${Date.now()}`, {
                     headers: { 'Authorization': `Bearer ${adminToken}` }
                 });
                 if (!response.ok) throw new Error();
@@ -1315,7 +1315,7 @@
             if (!container) return;
             container.innerHTML = '<p class="text-slate-500 text-xs">กำลังโหลดรายชื่อแยกประเภทกีฬา...</p>';
             try {
-                const response = await fetch(`${API_BASE_URL}/api/public/sports-roster`);
+                const response = await fetch(`${API_BASE_URL}/api/public/sports-roster?t=${Date.now()}`);
                 if (!response.ok) throw new Error();
                 const sportsRoster = await response.json();
                 container.innerHTML = '';
@@ -1435,7 +1435,7 @@
             tableBody.innerHTML = '<tr><td colspan="5" class="text-center py-4 text-slate-500">กำลังโหลดข้อมูลสมาชิก...</td></tr>';
             try {
                 const adminToken = localStorage.getItem('admin_token');
-                const response = await fetch(`${API_BASE_URL}/api/admin/members`, {
+                const response = await fetch(`${API_BASE_URL}/api/admin/members?t=${Date.now()}`, {
                     headers: { 'Authorization': `Bearer ${adminToken}` }
                 });
                 if (response.status === 401) { logout(); return; }
@@ -1452,7 +1452,7 @@
                     tableBody.innerHTML += `
                         <tr class="border-b border-slate-900 hover:bg-slate-950/20">
                             <td class="px-4 py-3 font-semibold text-slate-200">${member.name}</td>
-                            <td class="px-4 py-3 text-slate-300">${member.type === 'student' ? 'นักเรียน' : 'สมาชิกทั่วไป'}</td>
+                            <td class="px-4 py-3 text-slate-300">${member.type === 'student' ? 'นักเรียน' : 'บุคลากร (Staff)'}</td>
                             <td class="px-4 py-3 text-slate-300 font-bold">฿${parseFloat(member.amount).toFixed(2)}</td>
                             <td class="px-4 py-3">
                                 <span class="px-2.5 py-0.5 rounded-full border text-[10px] font-bold ${pillClass}">
@@ -1476,7 +1476,7 @@
             if (!member) return;
             document.getElementById('member-id').value = member.id;
             document.getElementById('member-name').value = member.name;
-            document.getElementById('member-type').value = member.type;
+            document.getElementById('member-type').value = (member.type === 'member') ? 'staff' : member.type;
             document.getElementById('member-amount').value = member.amount;
             document.getElementById('member-status').value = member.status;
             
@@ -1569,7 +1569,7 @@
             if (membersList.length === 0) {
                 try {
                     const adminToken = localStorage.getItem('admin_token');
-                    const response = await fetch(`${API_BASE_URL}/api/admin/members`, {
+                    const response = await fetch(`${API_BASE_URL}/api/admin/members?t=${Date.now()}`, {
                         headers: { 'Authorization': `Bearer ${adminToken}` }
                     });
                     if (response.ok) membersList = await response.json();
@@ -1587,7 +1587,7 @@
             
             suggestionsDiv.innerHTML = '';
             matches.forEach(m => {
-                const mTypeLabel = m.type === 'student' ? 'นักเรียน' : 'สมาชิกทั่วไป';
+                const mTypeLabel = m.type === 'student' ? 'นักเรียน' : 'บุคลากร (Staff)';
                 suggestionsDiv.innerHTML += `
                     <div onclick="selectMemberSuggestion('${m.name.replace(/'/g, "\\'")}', '${m.type}')" 
                         class="px-4 py-2.5 hover:bg-slate-900 cursor-pointer text-sm text-slate-200 flex justify-between items-center transition-all border-b border-slate-900 last:border-b-0">
@@ -1634,7 +1634,7 @@
             
             try {
                 const adminToken = localStorage.getItem('admin_token');
-                const response = await fetch(`${API_BASE_URL}/api/admin/users`, {
+                const response = await fetch(`${API_BASE_URL}/api/admin/users?t=${Date.now()}`, {
                     headers: { 'Authorization': `Bearer ${adminToken}` }
                 });
                 

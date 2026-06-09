@@ -145,7 +145,7 @@ class RosterDashboardResponse(BaseModel):
 # --- Member Schemas ---
 class MemberCreate(BaseModel):
     name: str
-    type: str = Field(..., description="'student' or 'member' (นักเรียน / สมาชิก)")
+    type: str = Field(..., description="'student' or 'staff' (นักเรียน / บุคลากร)")
     amount: Decimal = Field(..., gt=0)
     status: str = "unpaid" # 'paid' or 'unpaid'
 

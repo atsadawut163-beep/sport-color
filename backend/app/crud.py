@@ -310,7 +310,7 @@ def create_member(db: Session, member: schemas.MemberCreate):
             type="income",
             category="ค่าสมาชิก",
             amount=member.amount,
-            description=f"ค่าสมาชิก: {member.name} ({'นักเรียน' if member.type == 'student' else 'สมาชิกทั่วไป'})",
+            description=f"ค่าสมาชิก: {member.name} ({'นักเรียน' if member.type == 'student' else 'บุคลากร'})",
             date=datetime.date.today()
         )
         db.add(tx)
@@ -350,7 +350,7 @@ def update_member(db: Session, member_id: int, member_update: schemas.MemberUpda
             type="income",
             category="ค่าสมาชิก",
             amount=db_member.amount,
-            description=f"ค่าสมาชิก: {db_member.name} ({'นักเรียน' if db_member.type == 'student' else 'สมาชิกทั่วไป'})",
+            description=f"ค่าสมาชิก: {db_member.name} ({'นักเรียน' if db_member.type == 'student' else 'บุคลากร'})",
             date=datetime.date.today()
         )
         db.add(tx)
@@ -376,7 +376,7 @@ def update_member(db: Session, member_id: int, member_update: schemas.MemberUpda
             tx = db.query(models.Transaction).filter(models.Transaction.id == db_member.transaction_id).first()
             if tx:
                 tx.amount = db_member.amount
-                tx.description = f"ค่าสมาชิก: {db_member.name} ({'นักเรียน' if db_member.type == 'student' else 'สมาชิกทั่วไป'})"
+                tx.description = f"ค่าสมาชิก: {db_member.name} ({'นักเรียน' if db_member.type == 'student' else 'บุคลากร'})"
                 db.commit()
                 
     return db_member
