@@ -198,6 +198,19 @@ def add_sports_event(
     """Create a new sports competition event."""
     return crud.create_sports_event(db=db, event=event)
 
+@app.post("/api/admin/sports-events/bulk", response_model=List[schemas.SportsEventResponse], status_code=status.HTTP_201_CREATED)
+def add_sports_events_bulk(
+    events: List[schemas.SportsEventCreate],
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_user)
+):
+    """Create multiple sports events in bulk."""
+    created_events = []
+    for event in events:
+        db_event = crud.create_sports_event(db=db, event=event)
+        created_events.append(db_event)
+    return created_events
+
 
 # --- Sports & Results CRUD Extensions ---
 
