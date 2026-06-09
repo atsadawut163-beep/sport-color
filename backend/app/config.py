@@ -29,6 +29,8 @@ class Settings(BaseSettings):
             url = self.DATABASE_URL
             if url.startswith("postgres://"):
                 url = url.replace("postgres://", "postgresql://", 1)
+            elif url.startswith("mysql://"):
+                url = url.replace("mysql://", "mysql+pymysql://", 1)
             return url
         # Construct standard MySQL url using pymysql
         pwd = f":{self.DB_PASSWORD}" if self.DB_PASSWORD else ""
