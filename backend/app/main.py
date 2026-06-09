@@ -446,17 +446,3 @@ def remove_participant(
 def get_sports_roster(db: Session = Depends(get_db)):
     """Fetch all sports events and their registered participant roster details."""
     return crud.get_sports_with_participants(db=db)
-
-@app.get("/api/public/debug-db")
-def debug_db(db: Session = Depends(get_db)):
-    try:
-        from sqlalchemy import inspect
-        inspector = inspect(db.bind)
-        return {
-            "dialect": db.bind.dialect.name,
-            "tables": inspector.get_table_names(),
-            "db_url_masked": str(db.bind.url).split("@")[-1]
-        }
-    except Exception as e:
-        return {"error": str(e)}
-

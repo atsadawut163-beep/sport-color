@@ -31,6 +31,15 @@ class Settings(BaseSettings):
                 url = url.replace("postgres://", "postgresql://", 1)
             elif url.startswith("mysql://"):
                 url = url.replace("mysql://", "mysql+pymysql://", 1)
+            
+            # Auto-redirect system schemas in MySQL to sport_color_db
+            if url.startswith("mysql+pymysql://"):
+                parts = url.split("?")[0].split("/")
+                db_name = parts[-1] if len(parts) > 3 else ""
+                if db_name.lower() in ("sys", "mysql", "information_schema", "performance_schema", ""):
+                    base_url = "/".join(parts[:-1])
+                    query_params = "?" + url.split("?")[1] if "?" in url else ""
+                    url = f"{base_url}/sport_color_db{query_params}"
             return url
         # Construct standard MySQL url using pymysql
         pwd = f":{self.DB_PASSWORD}" if self.DB_PASSWORD else ""
