@@ -258,6 +258,19 @@ def add_member(
     """Register a new member and sync with budget if paid."""
     return crud.create_member(db=db, member=member_data)
 
+@app.post("/api/admin/members/bulk", response_model=List[schemas.MemberResponse], status_code=status.HTTP_201_CREATED)
+def add_members_bulk(
+    members_data: List[schemas.MemberCreate],
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_user)
+):
+    """Register multiple members at once."""
+    created_members = []
+    for member in members_data:
+        db_member = crud.create_member(db=db, member=member)
+        created_members.append(db_member)
+    return created_members
+
 @app.put("/api/admin/members/{member_id}", response_model=schemas.MemberResponse)
 def modify_member(
     member_id: int,
