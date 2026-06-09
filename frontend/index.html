@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>สรุปกิจกรรมและงบประมาณกีฬาสี</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Google Fonts: Outfit & Prompt -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Outfit', 'Prompt', sans-serif;
+            background: radial-gradient(circle at 10% 20%, rgba(99, 102, 241, 0.08) 0%, transparent 40%),
+                        radial-gradient(circle at 90% 80%, rgba(139, 92, 246, 0.08) 0%, transparent 40%),
+                        #0b0f19;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.3);
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(99, 102, 241, 0.3);
+            border-radius: 9999px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: rgba(99, 102, 241, 0.5);
+        }
+    </style>
+</head>
+<body class="min-h-screen text-slate-100 flex flex-col">
+
+    <!-- Header Navigation -->
+    <header class="sticky top-0 z-40 backdrop-blur-md bg-slate-950/80 border-b border-slate-900 px-6 py-4 transition-all duration-300">
+        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4">
+            <!-- Logo & Title -->
+            <div class="flex items-center gap-4">
+                <div class="flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-tr from-indigo-500 to-purple-600 text-white shadow-lg shadow-indigo-500/20 font-bold text-xl">
+                    🏆
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white via-slate-100 to-indigo-200 font-prompt">
+                        มหาไถ่เกมส์ ครั้งที่่ 28
+                    </h1>
+                    <p class="text-xs text-indigo-400 font-prompt tracking-wider uppercase">Finance & Event Hub</p>
+                </div>
+            </div>
+
+            <!-- Server Status & Action -->
+            <div class="flex items-center gap-4">
+                <!-- Status Badge -->
+                <div id="status-badge" class="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-900 border border-slate-800 text-xs font-prompt">
+                    <span class="relative flex h-2 w-2">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-400 opacity-75"></span>
+                        <span id="status-dot" class="relative inline-flex rounded-full h-2 w-2 bg-yellow-500"></span>
+                    </span>
+                    <span id="status-text" class="text-slate-400">กำลังตรวจสอบระบบ...</span>
+                </div>
+                
+                <a href="login.html" class="flex items-center gap-2 px-5 py-2.5 bg-slate-900 hover:bg-slate-850 border border-slate-850 hover:border-indigo-500/30 text-indigo-300 hover:text-indigo-200 text-sm font-medium rounded-xl transition-all shadow-md active:scale-[0.98] font-prompt">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+                    </svg>
+                    <span>เข้าสู่ระบบแอดมิน</span>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Grid -->
+    <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 space-y-6">
+
+        <!-- Banner Announcement (Offline warning) -->
+        <div id="offline-banner" class="hidden p-4 bg-indigo-950/40 border border-indigo-500/20 text-indigo-300 rounded-2xl flex flex-col md:flex-row justify-between items-center gap-4 font-prompt">
+            <div class="flex items-center gap-3">
+                <span class="text-2xl">💡</span>
+                <div>
+                    <h3 class="font-semibold text-slate-100">กำลังเข้าสู่โหมดสาธิต (Demo Mode)</h3>
+                    <p class="text-sm text-slate-400">เนื่องจากระบบหลังบ้าน FastAPI ออฟไลน์อยู่ ระบบจึงแสดงผลด้วยข้อมูลทดสอบ (Mock Data)</p>
+                </div>
+            </div>
+            <p class="text-xs bg-indigo-500/10 border border-indigo-500/20 px-3 py-1.5 rounded-lg">เปิดรัน uvicorn backend เพื่อเชื่อมต่อ MySQL จริง</p>
+        </div>
+
+        <!-- Section 1: Financial KPI Cards -->
+        <section class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <!-- KPI Box 1 -->
+            <div class="relative overflow-hidden backdrop-blur-md bg-slate-900/40 border border-slate-850 rounded-2xl p-6 transition-all hover:translate-y-[-2px] hover:border-slate-800 shadow-lg group">
+                <div class="absolute top-0 right-0 w-24 h-24 bg-emerald-500/10 rounded-bl-full blur-2xl opacity-50 group-hover:opacity-100 transition-opacity"></div>
+                <div class="flex justify-between items-start mb-4">
+                    <p class="text-slate-400 text-sm font-prompt">รายรับรวมทั้งหมด</p>
+                    <span class="p-2 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">💰</span>
+                </div>
+                <h3 id="kpi-income" class="text-3xl font-bold tracking-tight font-prompt text-emerald-400">฿0.00</h3>
+                <p class="text-xs text-slate-500 mt-2 font-prompt">ยอดเงินสนับสนุนและเงินสะสมสี</p>
+            </div>
+
+            <!-- KPI Box 2 -->
+            <div class="relative overflow-hidden backdrop-blur-md bg-slate-900/40 border border-slate-850 rounded-2xl p-6 transition-all hover:translate-y-[-2px] hover:border-slate-800 shadow-lg group">
+                <div class="absolute top-0 right-0 w-24 h-24 bg-rose-500/10 rounded-bl-full blur-2xl opacity-50 group-hover:opacity-100 transition-opacity"></div>
+                <div class="flex justify-between items-start mb-4">
+                    <p class="text-slate-400 text-sm font-prompt">รายจ่ายรวมทั้งหมด</p>
+                    <span class="p-2 rounded-xl bg-rose-500/10 text-rose-400 border border-rose-500/20">💸</span>
+                </div>
+                <h3 id="kpi-expense" class="text-3xl font-bold tracking-tight font-prompt text-rose-400">฿0.00</h3>
+                <p class="text-xs text-slate-500 mt-2 font-prompt">ค่าอุปกรณ์ อาหาร เสื้อผ้า และรางวัล</p>
+            </div>
+
+            <!-- KPI Box 3 -->
+            <div class="relative overflow-hidden backdrop-blur-md bg-slate-900/40 border border-slate-850 rounded-2xl p-6 transition-all hover:translate-y-[-2px] hover:border-slate-800 shadow-lg group">
+                <div class="absolute top-0 right-0 w-24 h-24 bg-indigo-500/10 rounded-bl-full blur-2xl opacity-50 group-hover:opacity-100 transition-opacity"></div>
+                <div class="flex justify-between items-start mb-4">
+                    <p class="text-slate-400 text-sm font-prompt">งบประมาณคงเหลือ</p>
+                    <span class="p-2 rounded-xl bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">⚖️</span>
+                </div>
+                <h3 id="kpi-balance" class="text-3xl font-bold tracking-tight font-prompt text-indigo-300">฿0.00</h3>
+                <p class="text-xs text-slate-500 mt-2 font-prompt">สถานะทางการเงินปัจจุบันของสี</p>
+            </div>
+        </section>
+
+        <!-- Section 2: Charts and Financial Log -->
+        <section class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Bar Chart: Income vs Expense -->
+            <div class="backdrop-blur-md bg-slate-900/40 border border-slate-850 rounded-2xl p-6 shadow-lg lg:col-span-1 flex flex-col justify-between">
+                <div>
+                    <h2 class="text-lg font-bold font-prompt text-slate-200 mb-2">เปรียบเทียบการเงิน</h2>
+                    <p class="text-xs text-slate-400 font-prompt mb-6">สัดส่วนรายรับและรายจ่ายทั้งหมด</p>
+                </div>
+                <div class="h-64 flex items-center justify-center">
+                    <canvas id="barChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Donut Chart: Expense Breakdown -->
+            <div class="backdrop-blur-md bg-slate-900/40 border border-slate-850 rounded-2xl p-6 shadow-lg lg:col-span-1 flex flex-col justify-between">
+                <div>
+                    <h2 class="text-lg font-bold font-prompt text-slate-200 mb-2">สัดส่วนค่าใช้จ่าย</h2>
+                    <p class="text-xs text-slate-400 font-prompt mb-6">จำแนกตามหมวดหมู่การจัดซื้อจัดจ้าง</p>
+                </div>
+                <div class="h-64 flex items-center justify-center">
+                    <canvas id="donutChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Recent Financial Log -->
+            <div class="backdrop-blur-md bg-slate-900/40 border border-slate-850 rounded-2xl p-6 shadow-lg lg:col-span-1 flex flex-col">
+                <h2 class="text-lg font-bold font-prompt text-slate-200 mb-2">บันทึกธุรกรรมล่าสุด</h2>
+                <p class="text-xs text-slate-400 font-prompt mb-4">รายการรายรับ-รายจ่ายที่อัปเดตเข้ามาล่าสุด</p>
+                <div class="flex-1 overflow-y-auto max-h-[250px] custom-scrollbar pr-1" id="transactions-list">
+                    <!-- Dynamic transactions loaded here -->
+                    <div class="text-center py-8 text-slate-500 font-prompt text-sm">ไม่มีข้อมูลธุรกรรม</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 3: Sports Results & Athletes Roster -->
+        <section class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Latest Sports Results (2 cols) -->
+            <div class="backdrop-blur-md bg-slate-900/40 border border-slate-850 rounded-2xl p-6 shadow-lg lg:col-span-2 flex flex-col">
+                <div class="flex justify-between items-center mb-6">
+                    <div>
+                        <h2 class="text-lg font-bold font-prompt text-slate-200">ผลการแข่งขันกีฬาล่าสุด</h2>
+                        <p class="text-xs text-slate-400 font-prompt mt-1">สรุปรางวัลเหรียญทองและสกอร์คู่ชิง</p>
+                    </div>
+                    <span class="px-3 py-1 bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 text-xs font-semibold rounded-lg font-prompt">Update Realtime</span>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 flex-1">
+                    <!-- Left side: Medal Tally Table (1 col) -->
+                    <div class="md:col-span-1 border-b md:border-b-0 md:border-r border-slate-900 pb-6 md:pb-0 md:pr-6 flex flex-col justify-start">
+                        <h3 class="text-sm font-semibold font-prompt text-slate-400 mb-3 flex items-center gap-1.5">
+                            📊 ตารางสรุปเหรียญ
+                        </h3>
+                        <div id="medal-tally-board" class="space-y-2">
+                            <!-- Dynamic medal table loaded here -->
+                        </div>
+                    </div>
+                    
+                    <!-- Right side: Match cards (2 cols) -->
+                    <div class="md:col-span-2">
+                        <h3 class="text-sm font-semibold font-prompt text-slate-400 mb-3">
+                            📋 ผลการแข่งรายคู่
+                        </h3>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 overflow-y-auto max-h-[350px] custom-scrollbar pr-1" id="results-list">
+                            <!-- Dynamic sports results loaded here -->
+                            <div class="sm:col-span-2 text-center py-12 text-slate-500 font-prompt text-sm">ไม่มีข้อมูลผลการแข่งขัน</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Athletes / Staff Roster (1 col) -->
+            <div class="backdrop-blur-md bg-slate-900/40 border border-slate-850 rounded-2xl p-6 shadow-lg lg:col-span-1 flex flex-col">
+                <div class="mb-4">
+                    <h2 class="text-lg font-bold font-prompt text-slate-200">ทำเนียบรายชื่อ</h2>
+                    <p class="text-xs text-slate-400 font-prompt mt-1">นักกีฬาและบุคลากรผู้ขับเคลื่อนทีม • สมาชิกทั้งหมด <span id="total-members-count" class="text-indigo-400 font-bold">0</span> คน</p>
+                </div>
+
+                <!-- Tabs -->
+                <div class="flex border-b border-slate-800 mb-4 text-sm font-prompt">
+                    <button id="tab-student" onclick="switchRosterTab('student')" 
+                        class="flex-1 py-2 text-center font-medium border-b-2 border-indigo-500 text-indigo-400 focus:outline-none transition-all">
+                        นักเรียน (Students)
+                    </button>
+                    <button id="tab-staff" onclick="switchRosterTab('staff')" 
+                        class="flex-1 py-2 text-center font-medium border-b-2 border-transparent text-slate-400 hover:text-slate-200 focus:outline-none transition-all">
+                        บุคลากร (Staff)
+                    </button>
+                </div>
+
+                <!-- Search Input -->
+                <div class="relative mb-4">
+                    <input type="text" id="roster-search" oninput="filterRoster()"
+                        class="w-full bg-slate-950/60 border border-slate-850 rounded-xl px-4 py-2 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition-all font-prompt"
+                        placeholder="🔍 ค้นหารายชื่อ...">
+                </div>
+
+                <!-- Roster List -->
+                <div class="flex-1 overflow-y-auto max-h-[250px] custom-scrollbar pr-1" id="roster-list">
+                    <!-- Dynamic roster items loaded here -->
+                    <div class="text-center py-12 text-slate-500 font-prompt text-sm">ไม่มีข้อมูลทำเนียบรายชื่อ</div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-slate-950/80 border-t border-slate-900 py-6 text-center text-xs text-slate-500 font-prompt mt-auto">
+        <div class="max-w-7xl mx-auto px-4">
+            <p>© 2026 ระบบการจัดการกิจกรรมและงบประมาณกีฬาสีสัมพันธ์. สงวนลิขสิทธิ์.</p>
+            <p class="mt-1 text-slate-600">ออกแบบและพัฒนาด้วย 💻 Python FastAPI & Tailwind CSS</p>
+        </div>
+    </footer>
+
+    <!-- JS Scripts for Fetching Data and rendering Charts -->
+    <script src="config.js"></script>
+    <script>
+        let isBackendAvailable = false;
+
+        // Global Charts variables to destroy/create
+        let barChartInst = null;
+        let donutChartInst = null;
+
+        // Global data cache for roster filtering
+        let rosterData = { students: [], staff: [] };
+        let activeRosterTab = 'student';
+
+        // Mock data fallback in case backend is offline
+        const mockFinance = {
+            total_income: 75000.00,
+            total_expense: 42350.00,
+            balance: 32650.00,
+            expenses_by_category: [
+                { category: 'ค่าอุปกรณ์กีฬา', total: 15400.00 },
+                { category: 'ค่าอาหารและเครื่องดื่ม', total: 12500.00 },
+                { category: 'ค่าเสื้อผ้า/ริบบิ้น', total: 9850.00 },
+                { category: 'ค่าป้ายคัตเอาท์/ตกแต่ง', total: 4600.00 }
+            ],
+            recent_transactions: [
+                { id: 1, type: 'income', category: 'เงินรางวัลปีก่อน', amount: 15000.00, description: 'งบจัดสรรจากสภานักเรียน', date: '2026-06-01', created_at: '' },
+                { id: 2, type: 'income', category: 'สปอนเซอร์', amount: 60000.00, description: 'ผู้ปกครองและห้างร้านสนับสนุน', date: '2026-06-02', created_at: '' },
+                { id: 3, type: 'expense', category: 'ค่าอุปกรณ์กีฬา', amount: 15400.00, description: 'ซื้อลูกฟุตบอล บาสเกตบอล และอุปกรณ์กรีฑา', date: '2026-06-03', created_at: '' },
+                { id: 4, type: 'expense', category: 'ค่าอาหารและเครื่องดื่ม', amount: 12500.00, description: 'ค่าข้าวกล่องน้ำดื่มวันซ้อมใหญ่', date: '2026-06-04', created_at: '' },
+                { id: 5, type: 'expense', category: 'ค่าเสื้อผ้า/ริบบิ้น', amount: 9850.00, description: 'จัดทำเสื้อเชียร์และริบบิ้นสำหรับกองเชียร์', date: '2026-06-05', created_at: '' },
+                { id: 6, type: 'expense', category: 'ค่าป้ายคัตเอาท์/ตกแต่ง', amount: 4600.00, description: 'ฟิวเจอร์บอร์ด สีสเปรย์ และผ้าสกรีนป้ายเชียร์', date: '2026-06-06', created_at: '' }
+            ]
+        };
+
+        const mockResults = [
+            { id: 1, sport_event_name: 'ฟุตบอล (ชาย)', winner: 'สีแดง (Red Team)', runner_up: 'สีน้ำเงิน (Blue Team)', second_runner_up: 'สีเขียว', score: '3 - 1', details: 'เกมสุดมันส์ แดงคว้าชัยช่วงครึ่งหลังอย่างเฉียบขาด' },
+            { id: 2, sport_event_name: 'บาสเกตบอล (หญิง)', winner: 'สีเหลือง (Yellow Team)', runner_up: 'สีแดง (Red Team)', second_runner_up: 'สีน้ำเงิน', score: '56 - 54', details: 'ดราม่าควอเตอร์สุดท้าย สีเหลืองชู้ต 3 แต้มนาทีสุดท้ายคว้าชัย' },
+            { id: 3, sport_event_name: 'วิ่งผลัด 4x100ม. (ผสม)', winner: 'สีเขียว (Green Team)', runner_up: 'สีเหลือง (Yellow Team)', second_runner_up: 'สีแดง', score: '44.82 วินาที', details: 'สีเขียวทำลายสถิติเก่าวิ่งสปีดคว้าทอง' }
+        ];
+
+        const mockRoster = {
+            students: [
+                { id: 1, name: 'นายกิตติทัต เสมอชีพ', color_team: 'Red', sport_event_name: 'ฟุตบอล (ชาย)' },
+                { id: 2, name: 'นางสาวชลดา วันดี', color_team: 'Yellow', sport_event_name: 'บาสเกตบอล (หญิง)' },
+                { id: 3, name: 'นายณภัทร สมบูรณ์', color_team: 'Green', sport_event_name: 'วิ่งผลัด 4x100ม. (ผสม)' },
+                { id: 4, name: 'นางสาวพิมพ์ชนก รัตนเรือง', color_team: 'Blue', sport_event_name: 'กองเชียร์และลีดเดอร์' },
+                { id: 5, name: 'นายวรพจน์ วังแก้ว', color_team: 'Red', sport_event_name: 'กรีฑาชาย' },
+                { id: 10, name: 'นายประวีณ สุขุม (สมาชิก)', color_team: 'สมาชิก', sport_event_name: 'สมาชิก (ชำระเงินแล้ว)' }
+            ],
+            staff: [
+                { id: 6, name: 'อาจารย์อรรถพล ประสิทธิ์', color_team: 'Red', sport_event_name: 'ผู้จัดการทีม/โค้ชฟุตบอล' },
+                { id: 7, name: 'อาจารย์วิภาดา เกียรติทวี', color_team: 'Yellow', sport_event_name: 'ที่ปรึกษากลุ่มงานพาเหรด' },
+                { id: 8, name: 'อาจารย์วิทยา รัตนพงษ์', color_team: 'Green', sport_event_name: 'คณะกรรมการตรวจสิทธิกรีฑา' },
+                { id: 9, name: 'อาจารย์กนกวรรณ จันทร์ส่อง', color_team: 'Blue', sport_event_name: 'ผู้ดูแลบัญชีงบประมาณสี' },
+                { id: 11, name: 'นางสุดาพร พันธ์ดี (สมาชิก)', color_team: 'สมาชิก', sport_event_name: 'สมาชิก (ยังไม่ได้ชำระ)' }
+            ],
+            total_members: 2
+        };
+
+        // Format currency helper
+        const formatBaht = (amount) => {
+            return new Intl.NumberFormat('th-TH', { style: 'currency', currency: 'THB' })
+                .format(amount)
+                .replace('THB', '฿');
+        };
+
+        // Normalization helper for team color
+        function getTeamKey(name) {
+            if (!name) return null;
+            const lower = name.toLowerCase();
+            if (lower.includes('แดง') || lower.includes('red')) return 'แดง';
+            if (lower.includes('น้ำเงิน') || lower.includes('ฟ้า') || lower.includes('blue')) return 'น้ำเงิน';
+            if (lower.includes('เขียว') || lower.includes('green')) return 'เขียว';
+            if (lower.includes('เหลือง') || lower.includes('yellow')) return 'เหลือง';
+            return null;
+        }
+
+        // Check Backend availability
+        async function checkConnection() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/`);
+                if (response.ok) {
+                    isBackendAvailable = true;
+                    updateStatusBadge('online');
+                    document.getElementById('offline-banner').classList.add('hidden');
+                } else {
+                    throw new Error('Server returned error');
+                }
+            } catch (err) {
+                isBackendAvailable = false;
+                updateStatusBadge('offline');
+                document.getElementById('offline-banner').classList.remove('hidden');
+            }
+        }
+
+        // Update status UI badge
+        function updateStatusBadge(status) {
+            const badge = document.getElementById('status-badge');
+            const dot = document.getElementById('status-dot');
+            const text = document.getElementById('status-text');
+
+            if (status === 'online') {
+                dot.className = 'relative inline-flex rounded-full h-2 w-2 bg-emerald-500';
+                dot.parentElement.querySelector('.animate-ping').className = 'animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75';
+                text.textContent = 'เชื่อมต่อระบบหลังบ้านแล้ว';
+                text.className = 'text-emerald-400 font-prompt font-medium';
+                badge.className = 'flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-950/20 border border-emerald-500/20 text-xs';
+            } else {
+                dot.className = 'relative inline-flex rounded-full h-2 w-2 bg-indigo-500';
+                dot.parentElement.querySelector('.animate-ping').className = 'animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75';
+                text.textContent = 'โหมดสาธิต (Demo Mode)';
+                text.className = 'text-indigo-400 font-prompt';
+                badge.className = 'flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-indigo-950/20 border border-indigo-500/20 text-xs';
+            }
+        }
+
+        // Load dashboard data
+        async function loadDashboard() {
+            await checkConnection();
+
+            if (isBackendAvailable) {
+                try {
+                    await Promise.all([
+                        fetchFinanceData(),
+                        fetchResultsData(),
+                        fetchRosterData()
+                    ]);
+                } catch (err) {
+                    console.error("Error loading live data, falling back to mock:", err);
+                    loadMockData();
+                }
+            } else {
+                loadMockData();
+            }
+        }
+
+        // Load Mock Data
+        function loadMockData() {
+            renderFinance(mockFinance);
+            renderResults(mockResults);
+            rosterData = mockRoster;
+            renderRoster();
+        }
+
+        // Fetch Live Finance
+        async function fetchFinanceData() {
+            const response = await fetch(`${API_BASE_URL}/api/public/dashboard/finance`);
+            if (!response.ok) throw new Error();
+            const data = await response.json();
+            renderFinance(data);
+        }
+
+        // Fetch Live Results
+        async function fetchResultsData() {
+            const response = await fetch(`${API_BASE_URL}/api/public/dashboard/results`);
+            if (!response.ok) throw new Error();
+            const data = await response.json();
+            renderResults(data);
+        }
+
+        // Fetch Live Roster
+        async function fetchRosterData() {
+            const response = await fetch(`${API_BASE_URL}/api/public/dashboard/roster`);
+            if (!response.ok) throw new Error();
+            const data = await response.json();
+            rosterData = data;
+            renderRoster();
+        }
+
+        // Render Finance
+        function renderFinance(data) {
+            // Render KPI values
+            document.getElementById('kpi-income').textContent = formatBaht(data.total_income);
+            document.getElementById('kpi-expense').textContent = formatBaht(data.total_expense);
+            
+            const balanceEl = document.getElementById('kpi-balance');
+            balanceEl.textContent = formatBaht(data.balance);
+            if (data.balance < 0) {
+                balanceEl.className = "text-3xl font-bold tracking-tight font-prompt text-rose-400";
+            } else {
+                balanceEl.className = "text-3xl font-bold tracking-tight font-prompt text-indigo-300";
+            }
+
+            // Render Recent Transaction List
+            const txsList = document.getElementById('transactions-list');
+            txsList.innerHTML = '';
+            
+            if (data.recent_transactions.length === 0) {
+                txsList.innerHTML = '<div class="text-center py-8 text-slate-500 font-prompt text-sm">ไม่มีข้อมูลธุรกรรม</div>';
+            } else {
+                data.recent_transactions.forEach(tx => {
+                    const isIncome = tx.type === 'income';
+                    const sign = isIncome ? '+' : '-';
+                    const colorClass = isIncome ? 'text-emerald-400 bg-emerald-500/10 border-emerald-500/15' : 'text-rose-400 bg-rose-500/10 border-rose-500/15';
+                    const signColorClass = isIncome ? 'text-emerald-400' : 'text-rose-400';
+                    
+                    txsList.innerHTML += `
+                        <div class="flex items-center justify-between p-3.5 bg-slate-950/40 border border-slate-850 rounded-xl mb-2 hover:border-slate-800 transition-all">
+                            <div class="flex items-center gap-3">
+                                <span class="px-2 py-1 rounded text-xs border font-medium ${colorClass} font-prompt">
+                                    ${isIncome ? 'รายรับ' : 'รายจ่าย'}
+                                </span>
+                                <div>
+                                    <h4 class="text-sm font-semibold text-slate-200 font-prompt">${tx.category}</h4>
+                                    <p class="text-xs text-slate-500 font-prompt line-clamp-1">${tx.description || '-'}</p>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <span class="text-sm font-bold font-prompt ${signColorClass}">${sign}${formatBaht(tx.amount)}</span>
+                                <p class="text-[10px] text-slate-500 font-prompt">${tx.date}</p>
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+
+            // Prepare charts
+            renderCharts(data);
+        }
+
+        // Render Charts using Chart.js
+        function renderCharts(data) {
+            // Destroy existing charts to prevent duplication bugs
+            if (barChartInst) barChartInst.destroy();
+            if (donutChartInst) donutChartInst.destroy();
+
+            const ctxBar = document.getElementById('barChart').getContext('2d');
+            const ctxDonut = document.getElementById('donutChart').getContext('2d');
+
+            // Bar Chart Setup
+            barChartInst = new Chart(ctxBar, {
+                type: 'bar',
+                data: {
+                    labels: ['รายรับทั้งหมด', 'รายจ่ายทั้งหมด'],
+                    datasets: [{
+                        data: [data.total_income, data.total_expense],
+                        backgroundColor: [
+                            'rgba(16, 185, 129, 0.75)', // Emerald
+                            'rgba(244, 63, 94, 0.75)'   // Rose
+                        ],
+                        borderColor: [
+                            'rgb(16, 185, 129)',
+                            'rgb(244, 63, 94)'
+                        ],
+                        borderWidth: 1.5,
+                        borderRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return ' ยอดเงิน: ' + formatBaht(context.raw);
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                            ticks: { color: '#94a3b8', font: { family: 'Prompt' } }
+                        },
+                        x: {
+                            grid: { display: false },
+                            ticks: { color: '#94a3b8', font: { family: 'Prompt' } }
+                        }
+                    }
+                }
+            });
+
+            // Donut Chart Setup
+            const categories = data.expenses_by_category.map(c => c.category);
+            const totals = data.expenses_by_category.map(c => c.total);
+
+            // Generate nice preset colors for donut chart
+            const presetColors = [
+                'rgba(99, 102, 241, 0.75)',  // Indigo
+                'rgba(139, 92, 246, 0.75)',  // Violet
+                'rgba(245, 158, 11, 0.75)',  // Amber
+                'rgba(20, 184, 166, 0.75)',  // Teal
+                'rgba(236, 72, 153, 0.75)',  // Pink
+                'rgba(6, 182, 212, 0.75)'    // Cyan
+            ];
+
+            const presetBorders = [
+                'rgb(99, 102, 241)',
+                'rgb(139, 92, 246)',
+                'rgb(245, 158, 11)',
+                'rgb(20, 184, 166)',
+                'rgb(236, 72, 153)',
+                'rgb(6, 182, 212)'
+            ];
+
+            donutChartInst = new Chart(ctxDonut, {
+                type: 'doughnut',
+                data: {
+                    labels: categories.length > 0 ? categories : ['ยังไม่มีค่าใช้จ่าย'],
+                    datasets: [{
+                        data: totals.length > 0 ? totals : [100],
+                        backgroundColor: categories.length > 0 ? presetColors.slice(0, categories.length) : ['rgba(148, 163, 184, 0.2)'],
+                        borderColor: categories.length > 0 ? presetBorders.slice(0, categories.length) : ['rgb(148, 163, 184)'],
+                        borderWidth: 1.5
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                color: '#e2e8f0',
+                                font: { family: 'Prompt', size: 10 },
+                                padding: 12
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    if (categories.length === 0) return ' ไม่มีค่าใช้จ่าย';
+                                    return ' ' + context.label + ': ' + formatBaht(context.raw);
+                                }
+                            }
+                        }
+                    },
+                    cutout: '65%'
+                }
+            });
+        }
+
+        // Render Sports Results
+        function renderResults(resultsList) {
+            // 1. Calculate Medal Tally
+            const tally = {
+                'แดง': { name: 'สีแดง', gold: 0, silver: 0, bronze: 0, total: 0 },
+                'น้ำเงิน': { name: 'สีน้ำเงิน', gold: 0, silver: 0, bronze: 0, total: 0 },
+                'เขียว': { name: 'สีเขียว', gold: 0, silver: 0, bronze: 0, total: 0 },
+                'เหลือง': { name: 'สีเหลือง', gold: 0, silver: 0, bronze: 0, total: 0 }
+            };
+
+            resultsList.forEach(res => {
+                const winnerKey = getTeamKey(res.winner);
+                const runnerUpKey = getTeamKey(res.runner_up);
+                const secondRunnerUpKey = getTeamKey(res.second_runner_up);
+                
+                if (winnerKey && tally[winnerKey]) {
+                    tally[winnerKey].gold++;
+                    tally[winnerKey].total++;
+                }
+                if (runnerUpKey && tally[runnerUpKey]) {
+                    tally[runnerUpKey].silver++;
+                    tally[runnerUpKey].total++;
+                }
+                if (secondRunnerUpKey && tally[secondRunnerUpKey]) {
+                    tally[secondRunnerUpKey].bronze++;
+                    tally[secondRunnerUpKey].total++;
+                }
+            });
+
+            // Sort by Gold desc, then Silver desc, then Bronze desc, then Total desc
+            const sortedTally = Object.values(tally).sort((a, b) => {
+                if (b.gold !== a.gold) return b.gold - a.gold;
+                if (b.silver !== a.silver) return b.silver - a.silver;
+                if (b.bronze !== a.bronze) return b.bronze - a.bronze;
+                return b.total - a.total;
+            });
+
+            // Render Medal Tally Board
+            const tallyContainer = document.getElementById('medal-tally-board');
+            if (tallyContainer) {
+                let tbodyHtml = '';
+                sortedTally.forEach((row, index) => {
+                    let teamColorText = 'text-slate-400';
+                    let teamBadgeClass = 'bg-slate-900 border-slate-800';
+                    if (row.name.includes('แดง')) {
+                        teamColorText = 'text-rose-450';
+                        teamBadgeClass = 'bg-rose-500/10 border-rose-500/20 text-rose-400';
+                    } else if (row.name.includes('น้ำเงิน')) {
+                        teamColorText = 'text-sky-450';
+                        teamBadgeClass = 'bg-sky-500/10 border-sky-500/20 text-sky-400';
+                    } else if (row.name.includes('เขียว')) {
+                        teamColorText = 'text-emerald-450';
+                        teamBadgeClass = 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400';
+                    } else if (row.name.includes('เหลือง')) {
+                        teamColorText = 'text-amber-450';
+                        teamBadgeClass = 'bg-amber-400/10 border-amber-400/20 text-amber-400';
+                    }
+
+                    const rankNum = `${index + 1}`;
+
+                    tbodyHtml += `
+                        <tr class="border-b border-slate-900/40 hover:bg-slate-950/20 transition-all font-prompt">
+                            <td class="py-2.5 flex items-center gap-2">
+                                <span class="w-4 text-center text-slate-500 font-bold text-xs">${rankNum}</span>
+                                <span class="px-2 py-0.5 rounded-lg border text-[11px] font-bold ${teamBadgeClass}">${row.name}</span>
+                            </td>
+                            <td class="py-2.5 text-center font-bold text-amber-400 text-sm">${row.gold}</td>
+                            <td class="py-2.5 text-center font-bold text-slate-300 text-sm">${row.silver}</td>
+                            <td class="py-2.5 text-center font-bold text-amber-700 text-sm">${row.bronze}</td>
+                            <td class="py-2.5 text-center font-black text-indigo-400 text-sm">${row.total}</td>
+                        </tr>
+                    `;
+                });
+
+                tallyContainer.innerHTML = `
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse text-xs">
+                            <thead>
+                                <tr class="border-b border-slate-850 text-slate-500 text-[10px] uppercase tracking-wider font-prompt">
+                                    <th class="pb-2 font-semibold">สี</th>
+                                    <th class="pb-2 text-center font-bold text-amber-400">ทอง</th>
+                                    <th class="pb-2 text-center font-bold text-slate-300">เงิน</th>
+                                    <th class="pb-2 text-center font-bold text-amber-700">ทองแดง</th>
+                                    <th class="pb-2 text-center font-bold text-indigo-400">รวม</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${tbodyHtml}
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+            }
+
+            // 2. Render Sports Results List
+            const resultsContainer = document.getElementById('results-list');
+            resultsContainer.innerHTML = '';
+
+            if (resultsList.length === 0) {
+                resultsContainer.innerHTML = '<div class="sm:col-span-2 text-center py-12 text-slate-500 font-prompt text-sm">ไม่มีข้อมูลผลการแข่งขัน</div>';
+            } else {
+                resultsList.forEach(res => {
+                    resultsContainer.innerHTML += `
+                        <div class="p-4 bg-slate-950/40 border border-slate-850 hover:border-slate-800 rounded-xl flex flex-col justify-between transition-all hover:scale-[1.01]">
+                            <div>
+                                <div class="flex justify-between items-start gap-2 mb-2">
+                                    <h4 class="text-xs font-bold text-slate-200 font-prompt">${res.sport_event_name}</h4>
+                                    <span class="px-2 py-0.5 rounded-full bg-slate-900 border border-slate-800 text-[9px] text-slate-400 font-bold font-prompt">
+                                        Score: ${res.score || '-'}
+                                    </span>
+                                </div>
+                                <p class="text-[11px] text-slate-400 font-prompt mb-3 line-clamp-2">${res.details || '-'}</p>
+                            </div>
+                            
+                            <!-- Podiums -->
+                            <div class="space-y-1 border-t border-slate-900 pt-2 text-[11px] font-prompt">
+                                <div class="flex items-center gap-1.5">
+                                    <span class="text-amber-400">🥇 ทอง:</span>
+                                    <span class="font-semibold text-slate-200">${res.winner}</span>
+                                </div>
+                                ${res.runner_up ? `
+                                <div class="flex items-center gap-1.5">
+                                    <span class="text-slate-400">🥈 เงิน:</span>
+                                    <span class="text-slate-300">${res.runner_up}</span>
+                                </div>` : ''}
+                                ${res.second_runner_up ? `
+                                <div class="flex items-center gap-1.5">
+                                    <span class="text-amber-700">🥉 ทองแดง:</span>
+                                    <span class="text-slate-400">${res.second_runner_up}</span>
+                                </div>` : ''}
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+        }
+
+        // Switch active tab on Roster
+        function switchRosterTab(type) {
+            activeRosterTab = type;
+            const tabStudent = document.getElementById('tab-student');
+            const tabStaff = document.getElementById('tab-staff');
+
+            if (type === 'student') {
+                tabStudent.className = 'flex-1 py-2 text-center font-medium border-b-2 border-indigo-500 text-indigo-400 focus:outline-none transition-all';
+                tabStaff.className = 'flex-1 py-2 text-center font-medium border-b-2 border-transparent text-slate-400 hover:text-slate-200 focus:outline-none transition-all';
+            } else {
+                tabStaff.className = 'flex-1 py-2 text-center font-medium border-b-2 border-indigo-500 text-indigo-400 focus:outline-none transition-all';
+                tabStudent.className = 'flex-1 py-2 text-center font-medium border-b-2 border-transparent text-slate-400 hover:text-slate-200 focus:outline-none transition-all';
+            }
+
+            // Clear search field when switching
+            document.getElementById('roster-search').value = '';
+            renderRoster();
+        }
+
+        // Render Roster list
+        function renderRoster(filterQuery = '') {
+            const rosterContainer = document.getElementById('roster-list');
+            rosterContainer.innerHTML = '';
+            
+            // Update total members count display
+            const countEl = document.getElementById('total-members-count');
+            if (countEl) {
+                countEl.textContent = rosterData.total_members || 0;
+            }
+            
+            const list = activeRosterTab === 'student' ? rosterData.students : rosterData.staff;
+            
+            // Filter list based on search query
+            const filteredList = list.filter(item => 
+                item.name.toLowerCase().includes(filterQuery.toLowerCase()) || 
+                (item.sport_event_name && item.sport_event_name.toLowerCase().includes(filterQuery.toLowerCase()))
+            );
+
+            if (filteredList.length === 0) {
+                rosterContainer.innerHTML = '<div class="text-center py-12 text-slate-500 font-prompt text-sm">ไม่พบรายชื่อที่ค้นหา</div>';
+                return;
+            }
+
+            filteredList.forEach(item => {
+                // Team color pill layout
+                let colorPill = 'bg-slate-900 border-slate-800 text-slate-400';
+                const team = item.color_team.toLowerCase();
+                if (team.includes('red') || team.includes('แดง')) colorPill = 'bg-rose-500/10 border-rose-500/20 text-rose-400';
+                else if (team.includes('blue') || team.includes('น้ำเงิน') || team.includes('ฟ้า')) colorPill = 'bg-sky-500/10 border-sky-500/20 text-sky-400';
+                else if (team.includes('green') || team.includes('เขียว')) colorPill = 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400';
+                else if (team.includes('yellow') || team.includes('เหลือง')) colorPill = 'bg-amber-400/10 border-amber-400/20 text-amber-400';
+
+                rosterContainer.innerHTML += `
+                    <div class="p-3 bg-slate-950/40 border border-slate-850 hover:border-slate-800 rounded-xl mb-2 flex items-center justify-between transition-all">
+                        <div class="flex flex-col">
+                            <span class="text-sm font-semibold text-slate-200 font-prompt">${item.name}</span>
+                            <span class="text-[10px] text-slate-500 font-prompt">${item.sport_event_name || '-'}</span>
+                        </div>
+                        <span class="px-2.5 py-0.5 rounded-full border text-[10px] font-bold font-prompt uppercase ${colorPill}">
+                            สี${item.color_team}
+                        </span>
+                    </div>
+                `;
+            });
+        }
+
+        // Filter Roster list dynamically as user types
+        function filterRoster() {
+            const query = document.getElementById('roster-search').value;
+            renderRoster(query);
+        }
+
+        // Auto-run on startup
+        window.addEventListener('DOMContentLoaded', () => {
+            loadDashboard();
+            // Optional: poll for connection updates every 10 seconds
+            setInterval(checkConnection, 10000);
+        });
+    </script>
+</body>
+</html>

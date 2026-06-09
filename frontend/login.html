@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>เข้าสู่ระบบผู้ดูแลระบบ - Sport Color Dashboard</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Outfit & Prompt -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Outfit', 'Prompt', sans-serif;
+            background: radial-gradient(circle at top right, rgba(99, 102, 241, 0.15), transparent),
+                        radial-gradient(circle at bottom left, rgba(139, 92, 246, 0.15), transparent),
+                        #0f172a;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+    <!-- Main Card Container -->
+    <div class="relative w-full max-w-md">
+        <!-- Background Glow -->
+        <div class="absolute -top-6 -left-6 w-32 h-32 bg-indigo-500 rounded-full blur-3xl opacity-30 animate-pulse"></div>
+        <div class="absolute -bottom-6 -right-6 w-32 h-32 bg-purple-500 rounded-full blur-3xl opacity-30 animate-pulse"></div>
+
+        <!-- Glassmorphism Form Card -->
+        <div class="relative backdrop-blur-xl bg-slate-900/80 border border-slate-800/80 rounded-3xl p-8 shadow-2xl transition-all duration-300 hover:border-slate-700/50">
+            <!-- Header -->
+            <div class="text-center mb-8">
+                <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 mb-4">
+                    <!-- Icon -->
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                    </svg>
+                </div>
+                <h1 class="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-200 via-indigo-100 to-purple-200 font-prompt">
+                    เข้าสู่ระบบแอดมิน
+                </h1>
+                <p class="text-slate-400 text-sm mt-2 font-prompt">จัดการข้อมูลกิจกรรมและงบประมาณกีฬาสี</p>
+            </div>
+
+            <!-- Error Banner -->
+            <div id="error-banner" class="hidden mb-6 p-4 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 text-sm flex items-center gap-3 animate-fade-in font-prompt">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                </svg>
+                <span id="error-message">ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง</span>
+            </div>
+
+            <!-- Form -->
+            <form id="login-form" class="space-y-6">
+                <!-- Username Input -->
+                <div>
+                    <label for="username" class="block text-slate-300 text-sm font-medium mb-2 font-prompt">ชื่อผู้ใช้งาน (Username)</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-500">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
+                            </svg>
+                        </span>
+                        <input type="text" id="username" required
+                            class="w-full pl-11 pr-4 py-3 bg-slate-950/50 border border-slate-800 rounded-xl text-slate-200 placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all font-prompt" 
+                            placeholder="เช่น admin">
+                    </div>
+                </div>
+
+                <!-- Password Input -->
+                <div>
+                    <label for="password" class="block text-slate-300 text-sm font-medium mb-2 font-prompt">รหัสผ่าน (Password)</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-500">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd" />
+                            </svg>
+                        </span>
+                        <input type="password" id="password" required
+                            class="w-full pl-11 pr-4 py-3 bg-slate-950/50 border border-slate-800 rounded-xl text-slate-200 placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all font-prompt"
+                            placeholder="ป้อนรหัสผ่าน">
+                    </div>
+                </div>
+
+                <!-- Submit Button -->
+                <button type="submit" id="submit-btn"
+                    class="w-full py-3.5 bg-gradient-to-r from-indigo-500 to-violet-600 hover:from-indigo-600 hover:to-violet-700 text-white font-medium rounded-xl shadow-lg shadow-indigo-500/20 active:scale-[0.98] transition-all flex items-center justify-center gap-2 font-prompt">
+                    <span>เข้าสู่ระบบ</span>
+                    <!-- Loading Spinner (hidden by default) -->
+                    <svg id="loading-spinner" class="hidden animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                </button>
+            </form>
+
+            <!-- Back Link -->
+            <div class="mt-8 text-center">
+                <a href="index.html" class="inline-flex items-center gap-2 text-indigo-400 hover:text-indigo-300 text-sm font-medium transition-all group font-prompt">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 transform group-hover:-translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                    </svg>
+                    กลับไปหน้าแดชบอร์ดสาธารณะ
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script to handle API call -->
+    <script src="config.js"></script>
+    <script>
+        const form = document.getElementById('login-form');
+        const submitBtn = document.getElementById('submit-btn');
+        const spinner = document.getElementById('loading-spinner');
+        const errorBanner = document.getElementById('error-banner');
+        const errorMessage = document.getElementById('error-message');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            errorBanner.classList.add('hidden');
+            
+            const usernameInput = document.getElementById('username').value.trim();
+            const passwordInput = document.getElementById('password').value;
+
+            // Enable loading state
+            submitBtn.disabled = true;
+            spinner.classList.remove('hidden');
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        username: usernameInput,
+                        password: passwordInput
+                    })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.detail || 'การเข้าสู่ระบบล้มเหลว');
+                }
+
+                // Save token to localStorage
+                localStorage.setItem('admin_token', data.access_token);
+                
+                // Redirect to admin panel
+                window.location.href = 'admin.html';
+            } catch (err) {
+                console.error(err);
+                errorMessage.textContent = err.message || 'ไม่สามารถเชื่อมต่อระบบหลังบ้านได้ โปรดลองอีกครั้ง';
+                errorBanner.classList.remove('hidden');
+            } finally {
+                // Disable loading state
+                submitBtn.disabled = false;
+                spinner.classList.add('hidden');
+            }
+        });
+
+        // Automatically redirect to admin panel if already logged in (optional check)
+        const checkLoggedIn = () => {
+            const token = localStorage.getItem('admin_token');
+            if (token) {
+                // We could verify it, but for simple redirection:
+                window.location.href = 'admin.html';
+            }
+        };
+        // Commented out to allow testing/switching logins easily if needed
+        // checkLoggedIn();
+    </script>
+</body>
+</html>

@@ -1,0 +1,1389 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบจัดการข้อมูล</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Outfit & Prompt -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Outfit', 'Prompt', sans-serif;
+            background: radial-gradient(circle at 10% 20%, rgba(99, 102, 241, 0.08) 0%, transparent 40%),
+                        radial-gradient(circle at 90% 80%, rgba(139, 92, 246, 0.08) 0%, transparent 40%),
+                        #0b0f19;
+        }
+    </style>
+</head>
+<body class="min-h-screen text-slate-100 flex flex-col">
+
+    <!-- Auth Guard Check -->
+    <script>
+        const token = localStorage.getItem('admin_token');
+        if (!token) {
+            window.location.href = 'login.html';
+        }
+    </script>
+
+    <!-- Header -->
+    <header class="sticky top-0 z-40 backdrop-blur-md bg-slate-950/80 border-b border-slate-900 px-6 py-4">
+        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4">
+            <!-- Title -->
+            <div class="flex items-center gap-4">
+                <div class="flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-tr from-indigo-500 to-purple-600 text-white shadow-lg font-bold text-xl">
+                    ⚙️
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-indigo-200 font-prompt">
+                        ระบบจัดการข้อมูล
+                    </h1>
+                    <p class="text-xs text-indigo-400 font-prompt tracking-wider">แผงควบคุมสิทธิ์ผู้ดูแลระบบ</p>
+                </div>
+            </div>
+
+            <!-- Navigation Actions -->
+            <div class="flex items-center gap-3">
+                <a href="index.html" class="px-4 py-2.5 bg-slate-900 hover:bg-slate-850 border border-slate-850 hover:border-indigo-500/20 text-indigo-300 text-sm font-medium rounded-xl transition-all font-prompt">
+                    🖥️ ไปยังแดชบอร์ดสาธารณะ
+                </a>
+                <button onclick="logout()" class="px-4 py-2.5 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/20 hover:border-rose-500/40 text-rose-400 text-sm font-medium rounded-xl transition-all font-prompt">
+                    🚪 ออกจากระบบ
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="flex-1 max-w-4xl w-full mx-auto p-4 sm:p-6 space-y-6">
+
+        <!-- Global Feedback Alert Banner -->
+        <div id="alert-banner" class="hidden p-4 rounded-xl flex items-center justify-between font-prompt transition-all">
+            <span id="alert-message">สำเร็จ!</span>
+            <button onclick="closeAlert()" class="text-slate-400 hover:text-slate-200">&times;</button>
+        </div>
+
+        <!-- Sidebar / Grid Layout for Forms -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+            
+            <!-- Navigation Menu (Tabs selector) -->
+            <div class="md:col-span-1 flex flex-col gap-2 font-prompt">
+                <button id="menu-tx" onclick="switchTab('tx')" 
+                    class="w-full text-left px-4 py-3 rounded-xl bg-indigo-600 text-white font-medium shadow-md shadow-indigo-500/10 border border-indigo-500/30 transition-all">
+                    💰 บันทึกรายรับรายจ่าย
+                </button>
+                <button id="menu-participant" onclick="switchTab('participant')" 
+                    class="w-full text-left px-4 py-3 rounded-xl bg-slate-900/60 hover:bg-slate-850 text-slate-300 hover:text-slate-100 border border-slate-850 transition-all">
+                    🏃 เพิ่มรายชื่อนักกีฬา
+                </button>
+                <button id="menu-result" onclick="switchTab('result')" 
+                    class="w-full text-left px-4 py-3 rounded-xl bg-slate-900/60 hover:bg-slate-850 text-slate-300 hover:text-slate-100 border border-slate-850 transition-all">
+                    🥇 อัปเดตผลการแข่ง
+                </button>
+                <button id="menu-sport" onclick="switchTab('sport')" 
+                    class="w-full text-left px-4 py-3 rounded-xl bg-slate-900/60 hover:bg-slate-850 text-slate-300 hover:text-slate-100 border border-slate-850 transition-all">
+                    🏀 เพิ่มประเภทกีฬา
+                </button>
+                <button id="menu-member" onclick="switchTab('member')" 
+                    class="w-full text-left px-4 py-3 rounded-xl bg-slate-900/60 hover:bg-slate-850 text-slate-300 hover:text-slate-100 border border-slate-850 transition-all">
+                    👥 จัดการสมาชิก
+                </button>
+                <button id="menu-user" onclick="switchTab('user')" 
+                    class="w-full text-left px-4 py-3 rounded-xl bg-slate-900/60 hover:bg-slate-850 text-slate-300 hover:text-slate-100 border border-slate-850 transition-all">
+                    👥 จัดการผู้ดูแลระบบ
+                </button>
+            </div>
+
+            <!-- Active Form Content Area (3 cols) -->
+            <div class="md:col-span-3 backdrop-blur-md bg-slate-900/40 border border-slate-850 rounded-3xl p-6 sm:p-8 shadow-xl">
+                
+                <!-- 1. Form: Transactions -->
+                <div id="form-tx" class="space-y-6">
+                    <div>
+                        <h2 class="text-xl font-bold font-prompt text-slate-200 mb-1">บันทึกรายรับรายจ่าย</h2>
+                        <p class="text-xs text-slate-400 font-prompt">เพิ่มบันทึกธุรกรรมทางการเงินของสี</p>
+                    </div>
+
+                    <form onsubmit="handleTransactionSubmit(event)" class="space-y-4 font-prompt">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-slate-300 text-sm mb-2">ประเภทธุรกรรม</label>
+                                <select id="tx-type" required
+                                    class="w-full bg-slate-950/60 border border-slate-850 rounded-xl px-4 py-3 text-slate-200 focus:outline-none focus:border-indigo-500">
+                                    <option value="income">รายรับ (Income)</option>
+                                    <option value="expense">รายจ่าย (Expense)</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-slate-300 text-sm mb-2">หมวดหมู่</label>
+                                <select id="tx-category" required onchange="checkCategoryOther()"
+                                    class="w-full bg-slate-950/60 border border-slate-850 rounded-xl px-4 py-3 text-slate-200 focus:outline-none focus:border-indigo-500">
+                                    <option value="ค่าสปอนเซอร์">ค่าสปอนเซอร์</option>
+                                    <option value="เงินจัดสรรสภานักเรียน">เงินจัดสรรสภานักเรียน</option>
+                                    <option value="ค่าอุปกรณ์กีฬา">ค่าอุปกรณ์กีฬา</option>
+                                    <option value="ค่าอาหารและเครื่องดื่ม">ค่าอาหารและเครื่องดื่ม</option>
+                                    <option value="ค่าเสื้อผ้า/ริบบิ้น">ค่าเสื้อผ้า/ริบบิ้น</option>
+                                    <option value="ค่าป้ายคัตเอาท์/ตกแต่ง">ค่าป้ายคัตเอาท์/ตกแต่ง</option>
+                                    <option value="other">อื่น ๆ (ระบุเอง)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Optional manual category -->
+                        <div id="tx-category-custom-div" class="hidden">
+                            <label class="block text-slate-300 text-sm mb-2">ระบุหมวดหมู่อื่นๆ</label>
+                            <input type="text" id="tx-category-custom"
+                                class="w-full bg-slate-950/60 border border-slate-850 rounded-xl px-4 py-3 text-slate-200 focus:outline-none focus:border-indigo-500"
+                                placeholder="ป้อนหมวดหมู่ใหม่">
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-slate-300 text-sm mb-2">จำนวนเงิน (บาท)</label>
+                                <input type="number" step="0.01" id="tx-amount" required
+                                    class="w-full bg-slate-950/60 border border-slate-850 rounded-xl px-4 py-3 text-slate-200 focus:outline-none focus:border-indigo-500"
+                                    placeholder="เช่น 1500.00">
+                            </div>
+                            <div>
+                                <label class="block text-slate-300 text-sm mb-2">วันที่ทำรายการ</label>
+                                <input type="date" id="tx-date" required
+                                    class="w-full bg-slate-950/60 border border-slate-850 rounded-xl px-4 py-3 text-slate-200 focus:outline-none focus:border-indigo-500">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-slate-300 text-sm mb-2">รายละเอียดธุรกรรม (คำอธิบายเพิ่มเติม)</label>
+                            <textarea id="tx-desc" rows="3"
+                                class="w-full bg-slate-950/60 border border-slate-850 rounded-xl px-4 py-3 text-slate-200 focus:outline-none focus:border-indigo-500 placeholder-slate-600"
+                                placeholder="ป้อนรายละเอียดหรือวัตถุประสงค์ในการใช้จ่าย"></textarea>
+                        </div>
+
+                        <button type="submit"
+                            class="w-full py-3.5 bg-gradient-to-r from-indigo-500 to-violet-600 hover:from-indigo-600 hover:to-violet-700 text-white font-semibold rounded-xl shadow-lg shadow-indigo-500/20 active:scale-[0.98] transition-all">
+                            บันทึกธุรกรรม
+                        </button>
+                    </form>
+                </div>
+
+                <!-- 2. Form: Participants -->
+                <div id="form-participant" class="hidden space-y-6">
+                    <div>
+                        <h2 class="text-xl font-bold font-prompt text-slate-200 mb-1">เพิ่มรายชื่อนักกีฬาและบุคลากร</h2>
+                        <p class="text-xs text-slate-400 font-prompt">ลงทะเบียนบุคคลและมอบหมายกีฬาที่ลงแข่งขัน</p>
+                    </div>
+
+                    <form onsubmit="handleParticipantSubmit(event)" class="space-y-4 font-prompt">
+                        <div class="relative">
+                            <label class="block text-slate-300 text-sm mb-2">ชื่อ-นามสกุล</label>
+                            <input type="text" id="part-name" required autocomplete="off" oninput="handleParticipantSearch(this.value)" onfocus="handleParticipantSearch(this.value)"
+                                class="w-full bg-slate-950/60 border border-slate-850 rounded-xl px-4 py-3 text-slate-200 focus:outline-none focus:border-indigo-500"
+                                placeholder="เช่น นายประหยัด รักดี">
+                            <!-- Suggestion List -->
+                            <div id="member-suggestions" class="absolute z-50 left-0 right-0 top-full mt-1 bg-slate-950 border border-slate-800 rounded-xl max-h-48 overflow-y-auto hidden shadow-2xl">
+                                <!-- Suggested items populated by JS -->
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-slate-300 text-sm mb-2">ประเภทบุคคล</label>
+                                <select id="part-type" required
+                                    class="w-full bg-slate-950/60 border border-slate-850 rounded-xl px-4 py-3 text-slate-200 focus:outline-none focus:border-indigo-500">
+                                    <option value="student">นักเรียน (Student)</option>
+                                    <option value="staff">บุคลากร (Staff)</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-slate-300 text-sm mb-2">สีสังกัด (Team)</label>
+                                <select id="part-color" required
+                                    class="w-full bg-slate-950/60 border border-slate-850 rounded-xl px-4 py-3 text-slate-200 focus:outline-none focus:border-indigo-500">
+                                    <option value="Red">สีแดง (Red)</option>
+                                    <option value="Blue">สีน้ำเงิน (Blue)</option>
+                                    <option value="Green">สีเขียว (Green)</option>
+                                    <option value="Yellow">สีเหลือง (Yellow)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-slate-300 text-sm mb-2">เลือกกีฬาที่เข้าร่วมแข่ง</label>
+                            <select id="part-sport"
+                                class="w-full bg-slate-950/60 border border-slate-850 rounded-xl px-4 py-3 text-slate-200 focus:outline-none focus:border-indigo-500">
+                                <option value="">-- ไม่ลงแข่ง / กองเชียร์ทั่วไป --</option>
+                                <!-- Dynamic options load here -->
+                            </select>
+                        </div>
+
+                        <button type="submit"
+                            class="w-full py-3.5 bg-gradient-to-r from-indigo-500 to-violet-600 hover:from-indigo-600 hover:to-violet-700 text-white font-semibold rounded-xl shadow-lg shadow-indigo-500/20 active:scale-[0.98] transition-all">
+                            ลงทะเบียนข้อมูล
+                        </button>
+                    </form>
+                </div>
+
+                <!-- 3. Form: Results -->
+                <div id="form-result" class="hidden space-y-6">
+                    <div>
+                        <h2 class="text-xl font-bold font-prompt text-slate-200 mb-1">อัปเดตผลการแข่งขันกีฬาสี</h2>
+                        <p class="text-xs text-slate-400 font-prompt">ระบุเหรียญทอง เงิน ทองแดง และคะแนนการแข่ง</p>
+                    </div>
+
+                    <form onsubmit="handleResultSubmit(event)" class="space-y-4 font-prompt">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-slate-300 text-sm mb-2">เลือกกีฬาที่ต้องการอัปเดตผล</label>
+                                <select id="res-sport" required onchange="handleResultSportChange(this.value)"
+                                    class="w-full bg-slate-950/60 border border-slate-850 rounded-xl px-4 py-3 text-slate-200 focus:outline-none focus:border-indigo-500">
+                                    <option value="">-- กรุณาเลือกรายการแข่งขัน --</option>
+                                    <!-- Dynamic options load here -->
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-slate-300 text-sm mb-2">สถานะการแข่งขัน</label>
+                                <select id="res-sport-status" required
+                                    class="w-full bg-slate-950/60 border border-slate-850 rounded-xl px-4 py-3 text-slate-200 focus:outline-none focus:border-indigo-500">
+                                    <option value="scheduled">กำหนดการแข่ง (Scheduled)</option>
+                                    <option value="ongoing">กำลังแข่งขัน (Ongoing)</option>
+                                    <option value="completed">เสร็จสิ้นแล้ว (Completed)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-slate-300 text-sm mb-2">รางวัลเหรียญทอง (ชนะเลิศ)</label>
+                                <input type="text" id="res-winner" required
+                                    class="w-full bg-slate-950/60 border border-slate-850 rounded-xl px-4 py-3 text-slate-200 focus:outline-none focus:border-indigo-500"
+                                    placeholder="เช่น สีแดง หรือ ชื่อนักกีฬา">
+                            </div>
+                            <div>
+                                <label class="block text-slate-300 text-sm mb-2">รางวัลเหรียญเงิน (รองอันดับ 1)</label>
+                                <input type="text" id="res-runnerup"
+                                    class="w-full bg-slate-950/60 border border-slate-850 rounded-xl px-4 py-3 text-slate-200 focus:outline-none focus:border-indigo-500"
+                                    placeholder="เช่น สีน้ำเงิน">
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-slate-300 text-sm mb-2">รางวัลเหรียญทองแดง (รองอันดับ 2)</label>
+                                <input type="text" id="res-third"
+                                    class="w-full bg-slate-950/60 border border-slate-850 rounded-xl px-4 py-3 text-slate-200 focus:outline-none focus:border-indigo-500"
+                                    placeholder="เช่น สีเขียว">
+                            </div>
+                            <div>
+                                <label class="block text-slate-300 text-sm mb-2">คะแนนการแข่งขัน / สกอร์</label>
+                                <input type="text" id="res-score"
+                                    class="w-full bg-slate-950/60 border border-slate-850 rounded-xl px-4 py-3 text-slate-200 focus:outline-none focus:border-indigo-500"
+                                    placeholder="เช่น 3-2 หรือ 12.04 วินาที">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-slate-300 text-sm mb-2">รายละเอียดการแข่งขัน</label>
+                            <textarea id="res-details" rows="3"
+                                class="w-full bg-slate-950/60 border border-slate-850 rounded-xl px-4 py-3 text-slate-200 focus:outline-none focus:border-indigo-500 placeholder-slate-650"
+                                placeholder="คำอธิบายผลแมตช์ เช่น จบด้วยการเตะลูกโทษ, ทำลายสถิติปีที่แล้ว"></textarea>
+                        </div>
+
+                        <button type="submit"
+                            class="w-full py-3.5 bg-gradient-to-r from-indigo-500 to-violet-600 hover:from-indigo-600 hover:to-violet-700 text-white font-semibold rounded-xl shadow-lg shadow-indigo-500/20 active:scale-[0.98] transition-all">
+                            อัปเดตผลงานกีฬา
+                        </button>
+                    </form>
+
+                    <!-- Results Table -->
+                    <div class="border-t border-slate-850 pt-6">
+                        <h3 class="text-md font-bold font-prompt text-slate-200 mb-4">ผลการแข่งขันทั้งหมด</h3>
+                        <div class="overflow-x-auto border border-slate-850 rounded-2xl bg-slate-950/20">
+                            <table class="w-full text-sm text-left text-slate-300 font-prompt">
+                                <thead class="bg-slate-950/40 text-xs text-slate-400 uppercase">
+                                    <tr>
+                                        <th class="px-4 py-3">กีฬา</th>
+                                        <th class="px-4 py-3">ชนะเลิศ (ทอง)</th>
+                                        <th class="px-4 py-3">คะแนน/สกอร์</th>
+                                        <th class="px-4 py-3 text-right">การจัดการ</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="results-table-body">
+                                    <!-- Dynamic rows loaded here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 4. Form: Sports Events -->
+                <div id="form-sport" class="hidden space-y-6">
+                    <div>
+                        <h2 class="text-xl font-bold font-prompt text-slate-200 mb-1">เพิ่มรายการแข่งขันกีฬา</h2>
+                        <p class="text-xs text-slate-400 font-prompt">ลงทะเบียนชนิดกีฬาเข้าระบบ เพื่อสามารถจัดสรรผู้แข่งและผลงานได้</p>
+                    </div>
+
+                    <form id="sport-form" onsubmit="handleSportSubmit(event)" class="space-y-4 font-prompt">
+                        <!-- Hidden ID field for Edit Mode -->
+                        <input type="hidden" id="sport-id">
+
+                        <div>
+                            <label class="block text-slate-300 text-sm mb-2">ชื่อชนิดกีฬา / รายการแข่ง</label>
+                            <input type="text" id="sport-name" required
+                                class="w-full bg-slate-950/60 border border-slate-850 rounded-xl px-4 py-3 text-slate-200 focus:outline-none focus:border-indigo-500"
+                                placeholder="เช่น ฟุตซอล (ม.ปลาย), ชักเย่อ (หญิง)">
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-slate-300 text-sm mb-2">หมวดหมู่กีฬา</label>
+                                <select id="sport-category" required
+                                    class="w-full bg-slate-950/60 border border-slate-850 rounded-xl px-4 py-3 text-slate-200 focus:outline-none focus:border-indigo-500">
+                                    <option value="Indoor">ในร่ม (Indoor)</option>
+                                    <option value="Outdoor">กลางแจ้ง (Outdoor)</option>
+                                    <option value="Track">กรีฑาลู่/ลาน (Track)</option>
+                                    <option value="BoardGame">เกมกระดาน/อีสปอร์ต</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-slate-300 text-sm mb-2">สถานะการแข่งขัน</label>
+                                <select id="sport-status" required
+                                    class="w-full bg-slate-950/60 border border-slate-850 rounded-xl px-4 py-3 text-slate-200 focus:outline-none focus:border-indigo-500">
+                                    <option value="scheduled">กำหนดการแข่ง (Scheduled)</option>
+                                    <option value="ongoing">กำลังแข่งขัน (Ongoing)</option>
+                                    <option value="completed">เสร็จสิ้นแล้ว (Completed)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="flex gap-2">
+                            <button type="submit" id="sport-submit-btn"
+                                class="flex-1 py-3.5 bg-gradient-to-r from-indigo-500 to-violet-600 hover:from-indigo-600 hover:to-violet-700 text-white font-semibold rounded-xl shadow-lg active:scale-[0.98] transition-all">
+                                ลงทะเบียนประเภทกีฬา
+                            </button>
+                            <button type="button" id="sport-cancel-btn" onclick="resetSportForm()"
+                                class="hidden px-6 py-3.5 bg-slate-800 hover:bg-slate-750 text-slate-300 hover:text-slate-200 font-semibold rounded-xl transition-all">
+                                ยกเลิก
+                            </button>
+                        </div>
+                    </form>
+
+                    <!-- Sports Table -->
+                    <div class="border-t border-slate-850 pt-6">
+                        <h3 class="text-md font-bold font-prompt text-slate-200 mb-4">รายการการแข่งขันกีฬาเสรี</h3>
+                        <div class="overflow-x-auto border border-slate-850 rounded-2xl bg-slate-950/20">
+                            <table class="w-full text-sm text-left text-slate-300 font-prompt">
+                                <thead class="bg-slate-950/40 text-xs text-slate-400 uppercase">
+                                    <tr>
+                                        <th class="px-4 py-3">ชื่อรายการกีฬา</th>
+                                        <th class="px-4 py-3">หมวดหมู่</th>
+                                        <th class="px-4 py-3">สถานะ</th>
+                                        <th class="px-4 py-3 text-right">การจัดการ</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="sports-table-body">
+                                    <!-- Dynamic rows loaded here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 4.5 Form & Table: Member Management -->
+                <div id="form-member" class="hidden space-y-6">
+                    <div>
+                        <h2 class="text-xl font-bold font-prompt text-slate-200 mb-1">จัดการข้อมูลสมาชิก</h2>
+                        <p class="text-xs text-slate-400 font-prompt">บันทึกรายชื่อสมาชิก, กำหนดการจ่ายค่าสมาชิก และซิงค์เข้ารายรับส่วนกลางโดยอัตโนมัติ</p>
+                    </div>
+
+                    <!-- Table of Members -->
+                    <div class="overflow-x-auto border border-slate-850 rounded-2xl bg-slate-950/20">
+                        <table class="w-full text-sm text-left text-slate-300 font-prompt">
+                            <thead class="bg-slate-950/40 text-xs text-slate-400 uppercase">
+                                <tr>
+                                    <th class="px-4 py-3">ชื่อ-นามสกุล</th>
+                                    <th class="px-4 py-3">ประเภทสมาชิก</th>
+                                    <th class="px-4 py-3">จำนวนเงิน</th>
+                                    <th class="px-4 py-3">สถานะ</th>
+                                    <th class="px-4 py-3 text-right">การจัดการ</th>
+                                </tr>
+                            </thead>
+                            <tbody id="members-table-body">
+                                <!-- Dynamic rows loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Member Form (Acts as both Add & Edit) -->
+                    <div class="border-t border-slate-850 pt-6 space-y-4">
+                        <h3 id="member-form-title" class="text-md font-bold font-prompt text-slate-200">เพิ่มสมาชิกรายใหม่</h3>
+                        
+                        <form id="member-crud-form" onsubmit="handleMemberSubmit(event)" class="space-y-4 font-prompt">
+                            <input type="hidden" id="member-id">
+                            
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-slate-300 text-sm mb-2">ชื่อ-นามสกุล</label>
+                                    <input type="text" id="member-name" required
+                                        class="w-full bg-slate-950/60 border border-slate-850 rounded-xl px-4 py-3 text-slate-200 focus:outline-none focus:border-indigo-500"
+                                        placeholder="เช่น นายสุขใจ ใจดี">
+                                </div>
+                                <div>
+                                    <label class="block text-slate-300 text-sm mb-2">ประเภทสมาชิก</label>
+                                    <select id="member-type" required
+                                        class="w-full bg-slate-950/60 border border-slate-850 rounded-xl px-4 py-3 text-slate-200 focus:outline-none focus:border-indigo-500">
+                                        <option value="student">นักเรียน (Student)</option>
+                                        <option value="member">สมาชิกทั่วไป (Member)</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-slate-300 text-sm mb-2">จำนวนเงินสนับสนุน (บาท)</label>
+                                    <input type="number" step="0.01" id="member-amount" required
+                                        class="w-full bg-slate-950/60 border border-slate-850 rounded-xl px-4 py-3 text-slate-200 focus:outline-none focus:border-indigo-500"
+                                        placeholder="เช่น 150.00">
+                                </div>
+                                <div>
+                                    <label class="block text-slate-300 text-sm mb-2">สถานะการชำระเงิน</label>
+                                    <select id="member-status" required
+                                        class="w-full bg-slate-950/60 border border-slate-850 rounded-xl px-4 py-3 text-slate-200 focus:outline-none focus:border-indigo-500">
+                                        <option value="paid">จ่ายแล้ว (Paid) - ซิงค์เข้ากองกลาง</option>
+                                        <option value="unpaid">ยังไม่จ่าย (Unpaid)</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="flex gap-2">
+                                <button type="submit" id="member-submit-btn"
+                                    class="flex-1 py-3.5 bg-gradient-to-r from-indigo-500 to-violet-600 hover:from-indigo-600 hover:to-violet-700 text-white font-semibold rounded-xl shadow-lg active:scale-[0.98] transition-all">
+                                    บันทึกข้อมูลสมาชิก
+                                </button>
+                                <button type="button" id="member-cancel-btn" onclick="resetMemberForm()"
+                                    class="hidden px-6 py-3.5 bg-slate-800 hover:bg-slate-750 text-slate-300 hover:text-slate-200 font-semibold rounded-xl transition-all">
+                                    ยกเลิก
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- 5. Form & Table: User Management -->
+                <div id="form-user" class="hidden space-y-6">
+                    <div>
+                        <h2 class="text-xl font-bold font-prompt text-slate-200 mb-1">จัดการผู้ดูแลระบบ</h2>
+                        <p class="text-xs text-slate-400 font-prompt">เพิ่ม แก้ไข หรือลบบัญชีผู้ดูแลระบบท่านอื่นๆ</p>
+                    </div>
+
+                    <!-- Table of Admins -->
+                    <div class="overflow-x-auto border border-slate-850 rounded-2xl bg-slate-950/20">
+                        <table class="w-full text-sm text-left text-slate-300 font-prompt">
+                            <thead class="bg-slate-950/40 text-xs text-slate-400 uppercase">
+                                <tr>
+                                    <th class="px-4 py-3">ชื่อผู้ใช้งาน</th>
+                                    <th class="px-4 py-3">ชื่อ-นามสกุล</th>
+                                    <th class="px-4 py-3">สิทธิ์การใช้งาน</th>
+                                    <th class="px-4 py-3 text-right">การจัดการ</th>
+                                </tr>
+                            </thead>
+                            <tbody id="admin-table-body">
+                                <!-- Dynamic rows loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Admin Form (Acts as both Add & Edit) -->
+                    <div class="border-t border-slate-850 pt-6 space-y-4">
+                        <h3 id="admin-form-title" class="text-md font-bold font-prompt text-slate-200">เพิ่มผู้ดูแลระบบใหม่</h3>
+                        
+                        <form id="admin-crud-form" onsubmit="handleAdminCrudSubmit(event)" class="space-y-4 font-prompt">
+                            <!-- Hidden ID field for Edit Mode -->
+                            <input type="hidden" id="admin-id">
+                            
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-slate-300 text-sm mb-2">ชื่อผู้ใช้งาน (Username)</label>
+                                    <input type="text" id="admin-username" required
+                                        class="w-full bg-slate-950/60 border border-slate-850 rounded-xl px-4 py-3 text-slate-200 focus:outline-none focus:border-indigo-500"
+                                        placeholder="เช่น admin2">
+                                </div>
+                                <div>
+                                    <label class="block text-slate-300 text-sm mb-2">ชื่อ-นามสกุลจริง</label>
+                                    <input type="text" id="admin-fullname" required
+                                        class="w-full bg-slate-950/60 border border-slate-850 rounded-xl px-4 py-3 text-slate-200 focus:outline-none focus:border-indigo-500"
+                                        placeholder="เช่น นายรักดี มั่นคง">
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-slate-300 text-sm mb-2">รหัสผ่าน (Password)</label>
+                                    <input type="password" id="admin-password" required
+                                        class="w-full bg-slate-950/60 border border-slate-850 rounded-xl px-4 py-3 text-slate-200 focus:outline-none focus:border-indigo-500"
+                                        placeholder="ระบุรหัสผ่าน (อย่างน้อย 4 ตัวอักษร)">
+                                    <p id="admin-pwd-help" class="text-[10px] text-slate-500 mt-1 hidden">*หากไม่ต้องการเปลี่ยนรหัสผ่าน ให้เว้นว่างไว้</p>
+                                </div>
+                                <div>
+                                    <label class="block text-slate-300 text-sm mb-2">สิทธิ์การใช้งาน (Role)</label>
+                                    <select id="admin-role" required
+                                        class="w-full bg-slate-950/60 border border-slate-850 rounded-xl px-4 py-3 text-slate-200 focus:outline-none focus:border-indigo-500">
+                                        <option value="admin">ผู้ดูแลระบบ (Admin)</option>
+                                        <option value="superadmin">ผู้ดูแลระบบสูงสุด (Super Admin)</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="flex gap-2">
+                                <button type="submit" id="admin-submit-btn"
+                                    class="flex-1 py-3.5 bg-gradient-to-r from-indigo-500 to-violet-600 hover:from-indigo-600 hover:to-violet-700 text-white font-semibold rounded-xl shadow-lg active:scale-[0.98] transition-all">
+                                    เพิ่มแอดมินใหม่
+                                </button>
+                                <button type="button" id="admin-cancel-btn" onclick="resetAdminForm()"
+                                    class="hidden px-6 py-3.5 bg-slate-800 hover:bg-slate-750 text-slate-300 hover:text-slate-200 font-semibold rounded-xl transition-all">
+                                    ยกเลิก
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-slate-950/80 border-t border-slate-900 py-6 text-center text-xs text-slate-500 font-prompt mt-auto">
+        <p>© 2026 ระบบการจัดการกิจกรรมและงบประมาณกีฬาสีสัมพันธ์. สำหรับผู้ดูแลระบบ.</p>
+    </footer>
+
+    <!-- Logic Script -->
+    <script src="config.js"></script>
+    <script>
+        let sportsEventsList = [];
+
+        // Setup defaults
+        document.getElementById('tx-date').valueAsDate = new Date();
+
+        // Check if backend custom category is needed
+        function checkCategoryOther() {
+            const select = document.getElementById('tx-category');
+            const customDiv = document.getElementById('tx-category-custom-div');
+            const customInput = document.getElementById('tx-category-custom');
+
+            if (select.value === 'other') {
+                customDiv.classList.remove('hidden');
+                customInput.required = true;
+            } else {
+                customDiv.classList.add('hidden');
+                customInput.required = false;
+                customInput.value = '';
+            }
+        }
+
+        // Tab Switching
+        function switchTab(target) {
+            const tabs = ['tx', 'participant', 'result', 'sport', 'user', 'member'];
+            
+            tabs.forEach(tab => {
+                const formEl = document.getElementById(`form-${tab}`);
+                const btnEl = document.getElementById(`menu-${tab}`);
+
+                if (formEl && btnEl) {
+                    if (tab === target) {
+                        formEl.classList.remove('hidden');
+                        btnEl.className = "w-full text-left px-4 py-3 rounded-xl bg-indigo-600 text-white font-medium shadow-md shadow-indigo-500/10 border border-indigo-500/30 transition-all";
+                    } else {
+                        formEl.classList.add('hidden');
+                        btnEl.className = "w-full text-left px-4 py-3 rounded-xl bg-slate-900/60 hover:bg-slate-850 text-slate-300 hover:text-slate-100 border border-slate-850 transition-all";
+                    }
+                }
+            });
+
+            if (target === 'user') {
+                loadAdmins();
+            } else if (target === 'member') {
+                loadMembers();
+            } else if (target === 'sport') {
+                loadSportsEvents();
+            } else if (target === 'result') {
+                loadResults();
+            }
+
+            closeAlert();
+        }
+
+        // Logout
+        function logout() {
+            localStorage.removeItem('admin_token');
+            window.location.href = 'login.html';
+        }
+
+        // API Helpers
+        async function securePost(endpoint, body) {
+            const adminToken = localStorage.getItem('admin_token');
+            const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${adminToken}`
+                },
+                body: JSON.stringify(body)
+            });
+
+            const data = await response.json();
+            
+            if (response.status === 401) {
+                alert('เซสชันผู้ใช้หมดอายุ กรุณาเข้าสู่ระบบใหม่อีกครั้ง');
+                logout();
+                throw new Error('Unauthorized');
+            }
+
+            if (!response.ok) {
+                throw new Error(data.detail || 'เกิดข้อผิดพลาดในการบันทึกข้อมูล');
+            }
+
+            return data;
+        }
+
+        // Fetch list of sports to populate select boxes
+        async function fetchSportsDropdowns() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/public/sports`);
+                if (!response.ok) throw new Error();
+                
+                sportsEventsList = await response.json();
+                
+                // Populate participant sport dropdown
+                const partSportSelect = document.getElementById('part-sport');
+                const resSportSelect = document.getElementById('res-sport');
+                
+                // Reset select boxes but keep first default option
+                partSportSelect.innerHTML = '<option value="">-- ไม่ลงแข่ง / กองเชียร์ทั่วไป --</option>';
+                resSportSelect.innerHTML = '<option value="">-- กรุณาเลือกรายการแข่งขัน --</option>';
+
+                sportsEventsList.forEach(sport => {
+                    const optText = `${sport.name} (${sport.category})`;
+                    
+                    // Add option to participant registration
+                    partSportSelect.innerHTML += `<option value="${sport.id}">${optText}</option>`;
+                    
+                    // Add option to results update
+                    resSportSelect.innerHTML += `<option value="${sport.id}">${optText}</option>`;
+                });
+            } catch (err) {
+                console.error("Could not fetch sports for dropdown (backend offline)", err);
+                
+                // Populate with some fake mockup options if offline for preview testing
+                const fakeSports = [
+                    { id: 1, name: 'ฟุตบอล (ชาย)', category: 'Outdoor' },
+                    { id: 2, name: 'บาสเกตบอล (หญิง)', category: 'Indoor' },
+                    { id: 3, name: 'วิ่งผลัด 4x100ม. (ผสม)', category: 'Track' }
+                ];
+                
+                const partSportSelect = document.getElementById('part-sport');
+                const resSportSelect = document.getElementById('res-sport');
+                
+                fakeSports.forEach(sport => {
+                    const optText = `${sport.name} (${sport.category})`;
+                    partSportSelect.innerHTML += `<option value="${sport.id}">${optText}</option>`;
+                    resSportSelect.innerHTML += `<option value="${sport.id}">${optText}</option>`;
+                });
+            }
+        }
+
+        // Show feedback banners
+        function showAlert(message, type = 'success') {
+            const banner = document.getElementById('alert-banner');
+            const msgSpan = document.getElementById('alert-message');
+            
+            msgSpan.textContent = message;
+            banner.classList.remove('hidden');
+
+            if (type === 'success') {
+                banner.className = "mb-6 p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-between font-prompt transition-all animate-bounce";
+            } else {
+                banner.className = "mb-6 p-4 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 flex items-center justify-between font-prompt transition-all";
+            }
+        }
+
+        function closeAlert() {
+            document.getElementById('alert-banner').classList.add('hidden');
+        }
+
+        // Form Submit Handlers
+        async function handleTransactionSubmit(e) {
+            e.preventDefault();
+            closeAlert();
+            
+            const type = document.getElementById('tx-type').value;
+            let category = document.getElementById('tx-category').value;
+            if (category === 'other') {
+                category = document.getElementById('tx-category-custom').value.trim();
+            }
+            const amount = parseFloat(document.getElementById('tx-amount').value);
+            const date = document.getElementById('tx-date').value;
+            const description = document.getElementById('tx-desc').value.trim();
+
+            if (!category) {
+                showAlert('กรุณากรอกระบุหมวดหมู่การใช้งาน', 'error');
+                return;
+            }
+
+            try {
+                await securePost('/api/admin/transactions', {
+                    type,
+                    category,
+                    amount,
+                    date,
+                    description: description || null
+                });
+                
+                showAlert('บันทึกรายละเอียดธุรกรรมทางการเงินสำเร็จเรียบร้อยแล้ว!');
+                e.target.reset();
+                document.getElementById('tx-date').valueAsDate = new Date();
+                checkCategoryOther();
+            } catch (err) {
+                showAlert(err.message || 'บันทึกล้มเหลว ไม่สามารถติดต่อเซิร์ฟเวอร์ได้', 'error');
+            }
+        }
+
+        async function handleParticipantSubmit(e) {
+            e.preventDefault();
+            closeAlert();
+
+            const name = document.getElementById('part-name').value.trim();
+            const type = document.getElementById('part-type').value;
+            const color_team = document.getElementById('part-color').value;
+            const sportVal = document.getElementById('part-sport').value;
+            const sport_event_id = sportVal ? parseInt(sportVal) : null;
+
+            try {
+                await securePost('/api/admin/participants', {
+                    name,
+                    type,
+                    color_team,
+                    sport_event_id
+                });
+                
+                showAlert(`บันทึกข้อมูลของ ${name} เข้าสู่ทำเนียบเรียบร้อยแล้ว!`);
+                e.target.reset();
+            } catch (err) {
+                showAlert(err.message || 'บันทึกล้มเหลว ไม่สามารถติดต่อเซิร์ฟเวอร์ได้', 'error');
+            }
+        }
+
+        // Handle Sport status auto-linking in Results Tab
+        function handleResultSportChange(sportId) {
+            if (!sportId) return;
+            const sport = sportsEventsList.find(s => s.id === parseInt(sportId));
+            if (sport) {
+                document.getElementById('res-sport-status').value = sport.status;
+            }
+        }
+
+        async function handleResultSubmit(e) {
+            e.preventDefault();
+            closeAlert();
+
+            const sportVal = document.getElementById('res-sport').value;
+            const sport_event_id = sportVal ? parseInt(sportVal) : null;
+            const statusVal = document.getElementById('res-sport-status').value;
+            const winner = document.getElementById('res-winner').value.trim();
+            const runner_up = document.getElementById('res-runnerup').value.trim() || null;
+            const second_runner_up = document.getElementById('res-third').value.trim() || null;
+            const score = document.getElementById('res-score').value.trim() || null;
+            const details = document.getElementById('res-details').value.trim() || null;
+
+            if (!sport_event_id) {
+                showAlert('กรุณาเลือกรายการแข่งขันกีฬาที่จะบันทึกผล', 'error');
+                return;
+            }
+
+            try {
+                // 1. Save or update results
+                await securePost('/api/admin/results', {
+                    sport_event_id,
+                    winner,
+                    runner_up,
+                    second_runner_up,
+                    score,
+                    details
+                });
+                
+                // 2. Sync status to sport events via PUT
+                const sport = sportsEventsList.find(s => s.id === sport_event_id);
+                if (sport && sport.status !== statusVal) {
+                    const adminToken = localStorage.getItem('admin_token');
+                    await fetch(`${API_BASE_URL}/api/admin/sports-events/${sport_event_id}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${adminToken}`
+                        },
+                        body: JSON.stringify({
+                            name: sport.name,
+                            category: sport.category,
+                            status: statusVal
+                        })
+                    });
+                }
+                
+                showAlert('บันทึกและสรุปผลรางวัลพร้อมอัปเดตสถานะกีฬาสำเร็จเรียบร้อย!');
+                e.target.reset();
+                await fetchSportsDropdowns(); // refresh dropdown cache
+                loadResults(); // reload results table
+            } catch (err) {
+                showAlert(err.message || 'บันทึกล้มเหลว ไม่สามารถติดต่อเซิร์ฟเวอร์ได้', 'error');
+            }
+        }
+
+        async function handleSportSubmit(e) {
+            e.preventDefault();
+            closeAlert();
+
+            const id = document.getElementById('sport-id').value;
+            const name = document.getElementById('sport-name').value.trim();
+            const category = document.getElementById('sport-category').value;
+            const status = document.getElementById('sport-status').value;
+            const isEdit = id !== '';
+            
+            const adminToken = localStorage.getItem('admin_token');
+
+            try {
+                if (isEdit) {
+                    // PUT update
+                    const response = await fetch(`${API_BASE_URL}/api/admin/sports-events/${id}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${adminToken}`
+                        },
+                        body: JSON.stringify({ name, category, status })
+                    });
+                    if (!response.ok) throw new Error('แก้ไขประเภทกีฬาล้มเหลว');
+                    showAlert(`แก้ไขรายการกีฬา ${name} สำเร็จเสร็จสิ้น!`);
+                    resetSportForm();
+                } else {
+                    // POST add
+                    await securePost('/api/admin/sports-events', { name, category, status });
+                    showAlert(`เพิ่มรายการกีฬา ${name} สำเร็จและนำเข้าสู่ระบบเรียบร้อย!`);
+                    e.target.reset();
+                }
+                
+                await fetchSportsDropdowns(); // refresh dropdown cache
+                loadSportsEvents(); // reload sports table
+            } catch (err) {
+                showAlert(err.message || 'บันทึกล้มเหลว ไม่สามารถติดต่อเซิร์ฟเวอร์ได้', 'error');
+            }
+        }
+
+        // --- Sports & Results CRUD Extensions UI ---
+        let resultsList = [];
+
+        async function loadSportsEvents() {
+            const tableBody = document.getElementById('sports-table-body');
+            tableBody.innerHTML = '<tr><td colspan="4" class="text-center py-4 text-slate-500">กำลังโหลด...</td></tr>';
+            try {
+                await fetchSportsDropdowns(); // updates sportsEventsList cache
+                tableBody.innerHTML = '';
+                if (sportsEventsList.length === 0) {
+                    tableBody.innerHTML = '<tr><td colspan="4" class="text-center py-4 text-slate-500">ไม่มีข้อมูลกีฬา</td></tr>';
+                    return;
+                }
+                sportsEventsList.forEach(sport => {
+                    tableBody.innerHTML += `
+                        <tr class="border-b border-slate-900 hover:bg-slate-950/20">
+                            <td class="px-4 py-3 font-semibold text-slate-200">${sport.name}</td>
+                            <td class="px-4 py-3 text-slate-300">${sport.category}</td>
+                            <td class="px-4 py-3">
+                                <span class="px-2 py-0.5 text-[10px] font-bold rounded-lg border bg-slate-900 border-slate-800 text-slate-400">
+                                    ${sport.status}
+                                </span>
+                            </td>
+                            <td class="px-4 py-3 text-right space-x-2">
+                                <button onclick="editSport(${sport.id})" class="px-2.5 py-1 text-xs bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 border border-indigo-500/20 rounded-lg transition-all">แก้ไข</button>
+                                <button onclick="deleteSport(${sport.id}, '${sport.name}')" class="px-2.5 py-1 text-xs bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 rounded-lg transition-all">ลบ</button>
+                            </td>
+                        </tr>
+                    `;
+                });
+            } catch (err) {
+                tableBody.innerHTML = '<tr><td colspan="4" class="text-center py-4 text-rose-400">เกิดข้อผิดพลาดในการโหลด</td></tr>';
+            }
+        }
+
+        function editSport(id) {
+            const sport = sportsEventsList.find(s => s.id === id);
+            if (!sport) return;
+            document.getElementById('sport-id').value = sport.id;
+            document.getElementById('sport-name').value = sport.name;
+            document.getElementById('sport-category').value = sport.category;
+            document.getElementById('sport-status').value = sport.status;
+            
+            document.getElementById('sport-submit-btn').textContent = 'บันทึกการแก้ไข';
+            document.getElementById('sport-cancel-btn').classList.remove('hidden');
+            closeAlert();
+        }
+
+        function resetSportForm() {
+            document.getElementById('sport-id').value = '';
+            document.getElementById('sport-form').reset();
+            document.getElementById('sport-submit-btn').textContent = 'ลงทะเบียนประเภทกีฬา';
+            document.getElementById('sport-cancel-btn').classList.add('hidden');
+            closeAlert();
+        }
+
+        async function deleteSport(id, name) {
+            closeAlert();
+            if (!confirm(`คุณแน่ใจหรือไม่ที่จะลบกีฬา "${name}"? การลบนี้จะลบผลการแข่งและรายชื่อผู้แข่งในประเภทนี้ทั้งหมด!`)) return;
+            try {
+                const adminToken = localStorage.getItem('admin_token');
+                const response = await fetch(`${API_BASE_URL}/api/admin/sports-events/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${adminToken}` }
+                });
+                if (!response.ok) throw new Error('ลบประเภทกีฬาล้มเหลว');
+                showAlert(`ลบประเภทกีฬา "${name}" สำเร็จเรียบร้อย!`);
+                loadSportsEvents();
+            } catch (err) {
+                showAlert(err.message, 'error');
+            }
+        }
+
+        async function loadResults() {
+            const tableBody = document.getElementById('results-table-body');
+            tableBody.innerHTML = '<tr><td colspan="4" class="text-center py-4 text-slate-500">กำลังโหลด...</td></tr>';
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/public/dashboard/results`);
+                if (!response.ok) throw new Error();
+                resultsList = await response.json();
+                tableBody.innerHTML = '';
+                if (resultsList.length === 0) {
+                    tableBody.innerHTML = '<tr><td colspan="4" class="text-center py-4 text-slate-500">ไม่มีข้อมูลผลรางวัล</td></tr>';
+                    return;
+                }
+                resultsList.forEach(res => {
+                    tableBody.innerHTML += `
+                        <tr class="border-b border-slate-900 hover:bg-slate-950/20">
+                            <td class="px-4 py-3 font-semibold text-slate-200">${res.sport_event_name}</td>
+                            <td class="px-4 py-3 text-slate-300">${res.winner}</td>
+                            <td class="px-4 py-3 text-slate-300 font-bold">${res.score || '-'}</td>
+                            <td class="px-4 py-3 text-right">
+                                <button onclick="deleteResult(${res.id}, '${res.sport_event_name}')" class="px-2.5 py-1 text-xs bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 rounded-lg transition-all">ลบ</button>
+                            </td>
+                        </tr>
+                    `;
+                });
+            } catch (err) {
+                tableBody.innerHTML = '<tr><td colspan="4" class="text-center py-4 text-rose-400">เกิดข้อผิดพลาดในการโหลด</td></tr>';
+            }
+        }
+
+        async function deleteResult(id, sportName) {
+            closeAlert();
+            if (!confirm(`คุณแน่ใจหรือไม่ที่จะลบผลการแข่งของ "${sportName}"? การลบจะรีเซ็ตสถานะกีฬากลับไปเป็นกำลังแข่งขัน`)) return;
+            try {
+                const adminToken = localStorage.getItem('admin_token');
+                const response = await fetch(`${API_BASE_URL}/api/admin/results/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${adminToken}` }
+                });
+                if (!response.ok) throw new Error('ลบผลงานกีฬาล้มเหลว');
+                showAlert(`ลบผลรางวัลของกีฬา "${sportName}" และปรับสถานะเรียบร้อย!`);
+                await fetchSportsDropdowns();
+                loadResults();
+            } catch (err) {
+                showAlert(err.message, 'error');
+            }
+        }
+
+
+        // --- Member CRUD & Autocomplete JS logic ---
+        let membersList = [];
+
+        async function loadMembers() {
+            const tableBody = document.getElementById('members-table-body');
+            tableBody.innerHTML = '<tr><td colspan="5" class="text-center py-4 text-slate-500">กำลังโหลดข้อมูลสมาชิก...</td></tr>';
+            try {
+                const adminToken = localStorage.getItem('admin_token');
+                const response = await fetch(`${API_BASE_URL}/api/admin/members`, {
+                    headers: { 'Authorization': `Bearer ${adminToken}` }
+                });
+                if (response.status === 401) { logout(); return; }
+                if (!response.ok) throw new Error();
+                membersList = await response.json();
+                tableBody.innerHTML = '';
+                if (membersList.length === 0) {
+                    tableBody.innerHTML = '<tr><td colspan="5" class="text-center py-4 text-slate-500">ไม่มีข้อมูลสมาชิก</td></tr>';
+                    return;
+                }
+                membersList.forEach(member => {
+                    const isPaid = member.status === 'paid';
+                    const pillClass = isPaid ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' : 'bg-slate-900 border-slate-800 text-slate-400';
+                    tableBody.innerHTML += `
+                        <tr class="border-b border-slate-900 hover:bg-slate-950/20">
+                            <td class="px-4 py-3 font-semibold text-slate-200">${member.name}</td>
+                            <td class="px-4 py-3 text-slate-300">${member.type === 'student' ? 'นักเรียน' : 'สมาชิกทั่วไป'}</td>
+                            <td class="px-4 py-3 text-slate-300 font-bold">฿${parseFloat(member.amount).toFixed(2)}</td>
+                            <td class="px-4 py-3">
+                                <span class="px-2.5 py-0.5 rounded-full border text-[10px] font-bold ${pillClass}">
+                                    ${isPaid ? 'จ่ายแล้ว' : 'ยังไม่จ่าย'}
+                                </span>
+                            </td>
+                            <td class="px-4 py-3 text-right space-x-2">
+                                <button onclick="editMember(${member.id})" class="px-2.5 py-1 text-xs bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 border border-indigo-500/20 rounded-lg transition-all">แก้ไข</button>
+                                <button onclick="deleteMember(${member.id}, '${member.name}')" class="px-2.5 py-1 text-xs bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 rounded-lg transition-all">ลบ</button>
+                            </td>
+                        </tr>
+                    `;
+                });
+            } catch (err) {
+                tableBody.innerHTML = '<tr><td colspan="5" class="text-center py-4 text-rose-400">เกิดข้อผิดพลาดในการโหลดสมาชิก</td></tr>';
+            }
+        }
+
+        function editMember(id) {
+            const member = membersList.find(m => m.id === id);
+            if (!member) return;
+            document.getElementById('member-id').value = member.id;
+            document.getElementById('member-name').value = member.name;
+            document.getElementById('member-type').value = member.type;
+            document.getElementById('member-amount').value = member.amount;
+            document.getElementById('member-status').value = member.status;
+            
+            document.getElementById('member-form-title').textContent = 'แก้ไขรายละเอียดสมาชิก';
+            document.getElementById('member-submit-btn').textContent = 'บันทึกการแก้ไข';
+            document.getElementById('member-cancel-btn').classList.remove('hidden');
+            closeAlert();
+        }
+
+        function resetMemberForm() {
+            document.getElementById('member-id').value = '';
+            document.getElementById('member-crud-form').reset();
+            document.getElementById('member-form-title').textContent = 'เพิ่มสมาชิกรายใหม่';
+            document.getElementById('member-submit-btn').textContent = 'บันทึกข้อมูลสมาชิก';
+            document.getElementById('member-cancel-btn').classList.add('hidden');
+            closeAlert();
+        }
+
+        async function handleMemberSubmit(e) {
+            e.preventDefault();
+            closeAlert();
+            
+            const id = document.getElementById('member-id').value;
+            const name = document.getElementById('member-name').value.trim();
+            const type = document.getElementById('member-type').value;
+            const amount = parseFloat(document.getElementById('member-amount').value);
+            const status = document.getElementById('member-status').value;
+            
+            const adminToken = localStorage.getItem('admin_token');
+            const isEdit = id !== '';
+            
+            try {
+                let url = `${API_BASE_URL}/api/admin/members`;
+                let method = 'POST';
+                let body = { name, type, amount, status };
+                
+                if (isEdit) {
+                    url += `/${id}`;
+                    method = 'PUT';
+                }
+                
+                const response = await fetch(url, {
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${adminToken}`
+                    },
+                    body: JSON.stringify(body)
+                });
+                
+                const data = await response.json();
+                if (response.status === 401) { logout(); return; }
+                if (!response.ok) throw new Error(data.detail || 'เกิดข้อผิดพลาดในการบันทึกสมาชิก');
+                
+                showAlert(isEdit ? 'แก้ไขรายละเอียดสมาชิกสำเร็จ!' : 'เพิ่มข้อมูลสมาชิกสำเร็จพร้อมบันทึกรายรับเข้าระบบกลางเรียบร้อย!');
+                resetMemberForm();
+                loadMembers();
+            } catch (err) {
+                showAlert(err.message, 'error');
+            }
+        }
+
+        async function deleteMember(id, name) {
+            closeAlert();
+            if (!confirm(`คุณแน่ใจหรือไม่ที่จะลบข้อมูลของ "${name}"? การลบจะทำลายบันทึกธุรกรรมรายรับของสมาชิกรายนี้ด้วย`)) return;
+            try {
+                const adminToken = localStorage.getItem('admin_token');
+                const response = await fetch(`${API_BASE_URL}/api/admin/members/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${adminToken}` }
+                });
+                if (!response.ok) throw new Error('ลบข้อมูลสมาชิกล้มเหลว');
+                showAlert(`ลบข้อมูลของ "${name}" สำเร็จเรียบร้อย!`);
+                loadMembers();
+            } catch (err) {
+                showAlert(err.message, 'error');
+            }
+        }
+
+        // --- Participant Autocomplete Suggestions logic ---
+        async function handleParticipantSearch(query) {
+            const suggestionsDiv = document.getElementById('member-suggestions');
+            if (!query.trim()) {
+                suggestionsDiv.innerHTML = '';
+                suggestionsDiv.classList.add('hidden');
+                return;
+            }
+            
+            // Ensure membersList is loaded. If empty, try to fetch silently
+            if (membersList.length === 0) {
+                try {
+                    const adminToken = localStorage.getItem('admin_token');
+                    const response = await fetch(`${API_BASE_URL}/api/admin/members`, {
+                        headers: { 'Authorization': `Bearer ${adminToken}` }
+                    });
+                    if (response.ok) membersList = await response.json();
+                } catch (e) { console.error(e); }
+            }
+            
+            // Filter members that match query
+            const matches = membersList.filter(m => m.name.toLowerCase().includes(query.toLowerCase()));
+            
+            if (matches.length === 0) {
+                suggestionsDiv.innerHTML = '';
+                suggestionsDiv.classList.add('hidden');
+                return;
+            }
+            
+            suggestionsDiv.innerHTML = '';
+            matches.forEach(m => {
+                const mTypeLabel = m.type === 'student' ? 'นักเรียน' : 'สมาชิกทั่วไป';
+                suggestionsDiv.innerHTML += `
+                    <div onclick="selectMemberSuggestion('${m.name.replace(/'/g, "\\'")}', '${m.type}')" 
+                        class="px-4 py-2.5 hover:bg-slate-900 cursor-pointer text-sm text-slate-200 flex justify-between items-center transition-all border-b border-slate-900 last:border-b-0">
+                        <span>${m.name}</span>
+                        <span class="text-[10px] text-slate-500">${mTypeLabel}</span>
+                    </div>
+                `;
+            });
+            suggestionsDiv.classList.remove('hidden');
+        }
+
+        function selectMemberSuggestion(name, type) {
+            document.getElementById('part-name').value = name;
+            // Map member type to participant type:
+            // if member type is 'student' -> participant type is 'student' (นักเรียน)
+            // if member type is 'member' -> participant type is 'staff' (บุคลากร)
+            if (type === 'student') {
+                document.getElementById('part-type').value = 'student';
+            } else {
+                document.getElementById('part-type').value = 'staff';
+            }
+            
+            // Hide suggestions dropdown
+            const suggestionsDiv = document.getElementById('member-suggestions');
+            suggestionsDiv.innerHTML = '';
+            suggestionsDiv.classList.add('hidden');
+        }
+
+        // Hide autocomplete when clicking outside
+        document.addEventListener('click', (e) => {
+            const suggestionsDiv = document.getElementById('member-suggestions');
+            const searchInput = document.getElementById('part-name');
+            if (suggestionsDiv && e.target !== searchInput && !suggestionsDiv.contains(e.target)) {
+                suggestionsDiv.classList.add('hidden');
+            }
+        });
+
+        // --- Admin CRUD JS logic ---
+        let adminUsersList = [];
+
+        async function loadAdmins() {
+            const tableBody = document.getElementById('admin-table-body');
+            tableBody.innerHTML = '<tr><td colspan="4" class="text-center py-4 text-slate-500">กำลังโหลดรายชื่อผู้ดูแลระบบ...</td></tr>';
+            
+            try {
+                const adminToken = localStorage.getItem('admin_token');
+                const response = await fetch(`${API_BASE_URL}/api/admin/users`, {
+                    headers: { 'Authorization': `Bearer ${adminToken}` }
+                });
+                
+                if (response.status === 401) {
+                    logout();
+                    return;
+                }
+                
+                if (!response.ok) throw new Error();
+                
+                adminUsersList = await response.json();
+                tableBody.innerHTML = '';
+                
+                if (adminUsersList.length === 0) {
+                    tableBody.innerHTML = '<tr><td colspan="4" class="text-center py-4 text-slate-500">ไม่มีข้อมูลแอดมิน</td></tr>';
+                    return;
+                }
+                
+                adminUsersList.forEach(user => {
+                    tableBody.innerHTML += `
+                        <tr class="border-b border-slate-900 hover:bg-slate-950/20">
+                            <td class="px-4 py-3 font-semibold text-slate-200">${user.username}</td>
+                            <td class="px-4 py-3 text-slate-300">${user.full_name || '-'}</td>
+                            <td class="px-4 py-3">
+                                <span class="px-2 py-0.5 text-[10px] font-bold rounded-lg border bg-slate-900 border-slate-800 text-slate-400">
+                                    ${user.role}
+                                </span>
+                            </td>
+                            <td class="px-4 py-3 text-right space-x-2">
+                                <button onclick="editAdmin(${user.id})" class="px-2.5 py-1 text-xs bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 border border-indigo-500/20 rounded-lg transition-all">
+                                    แก้ไข
+                                </button>
+                                <button onclick="deleteAdmin(${user.id}, '${user.username}')" class="px-2.5 py-1 text-xs bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 rounded-lg transition-all">
+                                    ลบ
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                });
+            } catch (err) {
+                tableBody.innerHTML = '<tr><td colspan="4" class="text-center py-4 text-rose-400">ไม่สามารถเชื่อมต่อฐานข้อมูลแอดมินได้</td></tr>';
+            }
+        }
+
+        function editAdmin(id) {
+            const user = adminUsersList.find(u => u.id === id);
+            if (!user) return;
+            
+            document.getElementById('admin-id').value = user.id;
+            document.getElementById('admin-username').value = user.username;
+            document.getElementById('admin-username').disabled = true; // Usernames are typically read-only
+            document.getElementById('admin-fullname').value = user.full_name || '';
+            document.getElementById('admin-role').value = user.role;
+            
+            // Password modifications for edit mode
+            const pwdInput = document.getElementById('admin-password');
+            pwdInput.required = false;
+            pwdInput.value = '';
+            pwdInput.placeholder = 'เว้นว่างไว้เพื่อรักษารหัสผ่านเดิม';
+            document.getElementById('admin-pwd-help').classList.remove('hidden');
+            
+            // UI elements
+            document.getElementById('admin-form-title').textContent = 'แก้ไขรายละเอียดแอดมิน';
+            document.getElementById('admin-submit-btn').textContent = 'บันทึกการแก้ไข';
+            document.getElementById('admin-cancel-btn').classList.remove('hidden');
+            
+            closeAlert();
+        }
+
+        function resetAdminForm() {
+            document.getElementById('admin-id').value = '';
+            document.getElementById('admin-username').value = '';
+            document.getElementById('admin-username').disabled = false;
+            document.getElementById('admin-fullname').value = '';
+            
+            const pwdInput = document.getElementById('admin-password');
+            pwdInput.required = true;
+            pwdInput.value = '';
+            pwdInput.placeholder = 'ระบุรหัสผ่าน (อย่างน้อย 4 ตัวอักษร)';
+            document.getElementById('admin-pwd-help').classList.add('hidden');
+            
+            document.getElementById('admin-form-title').textContent = 'เพิ่มผู้ดูแลระบบใหม่';
+            document.getElementById('admin-submit-btn').textContent = 'เพิ่มแอดมินใหม่';
+            document.getElementById('admin-cancel-btn').classList.add('hidden');
+            
+            closeAlert();
+        }
+
+        async function handleAdminCrudSubmit(e) {
+            e.preventDefault();
+            closeAlert();
+            
+            const id = document.getElementById('admin-id').value;
+            const username = document.getElementById('admin-username').value.trim();
+            const full_name = document.getElementById('admin-fullname').value.trim();
+            const password = document.getElementById('admin-password').value;
+            const role = document.getElementById('admin-role').value;
+            
+            const adminToken = localStorage.getItem('admin_token');
+            const isEdit = id !== '';
+            
+            try {
+                let url = `${API_BASE_URL}/api/admin/users`;
+                let method = 'POST';
+                let body = { username, full_name, password, role };
+                
+                if (isEdit) {
+                    url += `/${id}`;
+                    method = 'PUT';
+                    body = { full_name, role };
+                    if (password) body.password = password; // Only send password if changed
+                }
+                
+                const response = await fetch(url, {
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${adminToken}`
+                    },
+                    body: JSON.stringify(body)
+                });
+                
+                const data = await response.json();
+                
+                if (response.status === 401) {
+                    logout();
+                    return;
+                }
+                
+                if (!response.ok) {
+                    throw new Error(data.detail || 'การดำเนินการล้มเหลว');
+                }
+                
+                showAlert(isEdit ? 'แก้ไขรายละเอียดแอดมินสำเร็จ!' : 'ลงทะเบียนแอดมินรายใหม่เข้าสู่ระบบสำเร็จ!');
+                resetAdminForm();
+                loadAdmins();
+            } catch (err) {
+                showAlert(err.message || 'เกิดข้อผิดพลาดในการบันทึกข้อมูลแอดมิน', 'error');
+            }
+        }
+
+        async function deleteAdmin(id, username) {
+            closeAlert();
+            if (!confirm(`คุณแน่ใจหรือไม่ที่จะลบบัญชีผู้ดูแลระบบ "${username}"?`)) {
+                return;
+            }
+            
+            const adminToken = localStorage.getItem('admin_token');
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/admin/users/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${adminToken}` }
+                });
+                
+                const data = await response.json();
+                
+                if (response.status === 401) {
+                    logout();
+                    return;
+                }
+                
+                if (!response.ok) {
+                    throw new Error(data.detail || 'ไม่สามารถลบข้อมูลผู้ใช้งานได้');
+                }
+                
+                showAlert(`ลบบัญชีผู้ใช้งาน "${username}" สำเร็จเสร็จสิ้น!`);
+                loadAdmins();
+            } catch (err) {
+                showAlert(err.message || 'ไม่สามารถติดต่อหลังบ้านได้', 'error');
+            }
+        }
+
+        // Auto-run on startup
+        window.addEventListener('DOMContentLoaded', () => {
+            fetchSportsDropdowns();
+        });
+    </script>
+</body>
+</html>
